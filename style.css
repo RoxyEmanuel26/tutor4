@@ -1,0 +1,320 @@
+/* Reset Dasar & Tipografi Minimalis */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+body {
+    background-color: #f4f6f8;
+    color: #333;
+    line-height: 1.7;
+    overflow-x: hidden;
+}
+
+/* Tampilan Artikel Premium */
+.content {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 40px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.content h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    color: #111827;
+    letter-spacing: -0.02em;
+}
+
+.content h2 {
+    font-size: 1.75rem;
+    margin: 35px 0 15px;
+    color: #1f2937;
+    letter-spacing: -0.01em;
+}
+
+.content .meta {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 15px;
+}
+
+.content p {
+    margin-bottom: 20px;
+    font-size: 1.125rem;
+    color: #4b5563;
+}
+
+.content blockquote {
+    border-left: 4px solid #3b82f6;
+    padding-left: 20px;
+    margin: 30px 0;
+    font-style: italic;
+    color: #111827;
+    font-weight: 500;
+    background: #eff6ff;
+    padding: 20px;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Pengunci scroll ketika modal aktif */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* Modal Layer (Overlay) */
+.modal-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(17, 24, 39, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Menyembunyikan modal dengan animasi fade out */
+.modal-layer.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Kartu Konten Utama */
+.card-featured {
+    background: #ffffff;
+    width: 100%;
+    max-width: 480px;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 24px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+}
+
+/* Animasi tutup */
+.modal-layer.hidden .card-featured {
+    transform: translateY(30px) scale(0.95);
+    opacity: 0;
+}
+
+/* Tombol Tutup */
+.dismiss-btn {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    background: #ffffff;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.dismiss-btn:hover {
+    transform: scale(1.1);
+    color: #ef4444;
+    border-color: #fee2e2;
+    background: #fee2e2;
+}
+
+.dismiss-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+}
+
+/* Teks Header di atas Slider */
+.card-heading {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 14px;
+}
+
+.heading-primary {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.heading-secondary {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* Wadah Galeri Gambar */
+.gallery-viewport {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    aspect-ratio: 16/10;
+    position: relative;
+    background: #f3f4f6;
+}
+
+/* Track untuk slide */
+.gallery-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    height: 100%;
+    width: 100%;
+    will-change: transform;
+}
+
+.gallery-item {
+    min-width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* Area Indikator */
+.indicators {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d1d5db;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background: #3b82f6;
+    transform: scale(1.3);
+    width: 24px;
+    border-radius: 10px;
+}
+
+.indicator:hover:not(.active) {
+    background: #9ca3af;
+}
+
+/* Grup Tombol Aksi */
+.action-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Tombol Dasar (Shared) */
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    color: #ffffff;
+    border: none;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tombol Download (Biru) */
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -4px rgba(37, 99, 235, 0.5);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 8px -4px rgba(37, 99, 235, 0.5);
+}
+
+/* Tombol Watch Now (Hijau) */
+.btn-secondary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 8px 16px -4px rgba(5, 150, 105, 0.4);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -4px rgba(5, 150, 105, 0.5);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.btn-secondary:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 8px -4px rgba(5, 150, 105, 0.5);
+}
+
+/* Responsivitas (Layar Kecil) */
+@media (max-width: 640px) {
+    .content {
+        margin: 0;
+        border-radius: 0;
+        padding: 25px 20px;
+        min-height: 100vh;
+    }
+    
+    .content h1 {
+        font-size: 2rem;
+    }
+    
+    .card-featured {
+        padding: 20px;
+        border-radius: 16px;
+    }
+    
+    .dismiss-btn {
+        top: -12px;
+        right: -12px;
+    }
+
+    .action-row {
+        flex-direction: column;
+    }
+}
