@@ -20,7 +20,7 @@
     //  (Tambahkan URL baru di bawah ini)
     // ==========================================
     const POPUNDER_SCRIPTS = [
-        '',
+        'https://latherachelesscatastrophe.com/f8/11/b2/f811b26d75b7c9fa8cf9029819eff8e8.js',
         // Tambahkan popunder baru di sini:
         // 'https://example.com/popunder3.js',
         // 'https://example.com/popunder4.js',
@@ -31,7 +31,7 @@
     //  (Tambahkan URL baru di bawah ini)
     // ==========================================
     const SOCIALBAR_SCRIPTS = [
-        '',
+        'https://latherachelesscatastrophe.com/a0/a3/f7/a0a3f73e5c3da28dfd611ae7ffa7ab51.js',
         // Tambahkan social bar baru di sini:
         // 'https://example.com/socialbar2.js',
     ];
