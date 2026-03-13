@@ -291,6 +291,37 @@ body.no-scroll {
     box-shadow: 0 4px 8px -4px rgba(5, 150, 105, 0.5);
 }
 
+/* Tombol "Buka 4 Situs" */
+.open-multi {
+    display: block;
+    max-width: 320px;
+    margin: 20px auto;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 0.3px;
+    box-shadow: 0 8px 20px -4px rgba(225, 29, 72, 0.45);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        background 0.3s ease;
+}
+
+.open-multi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -4px rgba(225, 29, 72, 0.55);
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 50%, #9f1239 100%);
+}
+
+.open-multi:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 10px -4px rgba(225, 29, 72, 0.5);
+}
+
 /* Responsivitas (Layar Kecil) */
 @media (max-width: 640px) {
     .content {
@@ -299,16 +330,16 @@ body.no-scroll {
         padding: 25px 20px;
         min-height: 100vh;
     }
-    
+
     .content h1 {
         font-size: 2rem;
     }
-    
+
     .card-featured {
         padding: 20px;
         border-radius: 16px;
     }
-    
+
     .dismiss-btn {
         top: -12px;
         right: -12px;
@@ -316,5 +347,10 @@ body.no-scroll {
 
     .action-row {
         flex-direction: column;
+    }
+
+    .open-multi {
+        max-width: 100%;
+        margin: 16px 20px;
     }
 }
