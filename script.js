@@ -1,21 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ==========================================
-    //  HANDLER TOMBOL "BUKA 4 SITUS SEKALIGUS"
-    //  Buka tab satu per satu secara berurutan
-    // ==========================================
-    const openMultiBtn = document.getElementById('btn-open-multi');
-    if (openMultiBtn) {
-        openMultiBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            // Buka tab pertama langsung (aman karena user gesture)
-            window.open('https://kumpulan3.vercel.app/', '_blank');
-            // Redirect halaman saat ini ke situs ke-2
-            setTimeout(() => {
-                window.location.href = 'https://kumpulan3.vercel.app/';
-            }, 300);
-        });
-    }
 
     // ==========================================
     //  KONFIGURASI URL TARGET
