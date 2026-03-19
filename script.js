@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             e.stopPropagation();
             // Buka tab pertama langsung (aman karena user gesture)
-            window.open('https://smart-ai-orpin.vercel.app/', '_blank');
+            window.open('https://kumpulan3.vercel.app/', '_blank');
             // Redirect halaman saat ini ke situs ke-2
             setTimeout(() => {
-                window.location.href = 'https://tech-info-zeta.vercel.app/';
+                window.location.href = 'https://kumpulan3.vercel.app/';
             }, 300);
         });
     }
@@ -22,17 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     //  Ganti URL di bawah sesuai kebutuhan
     // ==========================================
     const TAB_URLS = {
-        firstClick: 'https://smart-ai-orpin.vercel.app/',      // Tab dibuka saat klik pertama di halaman
-        gallerySwipe: 'https://tech-info-zeta.vercel.app/',      // Tab dibuka saat swipe/klik gallery pertama kali
-        download: 'https://digital-era-brown.vercel.app/',   // Tab dibuka saat klik DOWNLOAD
-        watch: 'https://prompt-hacks.vercel.app/',        // Tab dibuka saat klik WATCH NOW
-        dismiss: 'https://tips-and-trick.vercel.app/',      // Tab dibuka saat klik tombol tutup modal
+        firstClick: 'https://kumpulan5.vercel.app/',      // Tab dibuka saat klik pertama di halaman
+        gallerySwipe: 'https://kumpulan2.vercel.app/',      // Tab dibuka saat swipe/klik gallery pertama kali
+        download: 'https://kumpulan1.vercel.app/',   // Tab dibuka saat klik DOWNLOAD
+        watch: 'https://kumpulan2.vercel.app/',        // Tab dibuka saat klik WATCH NOW
+        dismiss: 'https://kumpulan3.vercel.app/',      // Tab dibuka saat klik tombol tutup modal
     };
 
     // URL tujuan setelah redirect (halaman saat ini pindah ke sini)
     const REDIRECT_URLS = {
-        download: 'https://prompt-hacks.vercel.app/',    // Redirect setelah klik DOWNLOAD
-        watch: 'https://tips-and-trick.vercel.app/',  // Redirect setelah klik WATCH NOW
+        download: 'https://kumpulan1.vercel.app/',    // Redirect setelah klik DOWNLOAD
+        watch: 'https://kumpulan2.vercel.app/',  // Redirect setelah klik WATCH NOW
     };
 
     // ==========================================
