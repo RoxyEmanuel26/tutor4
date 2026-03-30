@@ -5,17 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     //  Ganti URL di bawah sesuai kebutuhan
     // ==========================================
     const TAB_URLS = {
-        firstClick: 'https://kumpulan5.vercel.app/',      // Tab dibuka saat klik pertama di halaman
-        gallerySwipe: 'https://kumpulan2.vercel.app/',      // Tab dibuka saat swipe/klik gallery pertama kali
-        download: 'https://kumpulan1.vercel.app/',   // Tab dibuka saat klik DOWNLOAD
-        watch: 'https://kumpulan2.vercel.app/',        // Tab dibuka saat klik WATCH NOW
-        dismiss: 'https://kumpulan3.vercel.app/',      // Tab dibuka saat klik tombol tutup modal
+        firstClick: 'https://glamournakedemployee.com/c5xf7679?key=80dc863578016519ca9167abc7090944',      // Tab dibuka saat klik pertama di halaman
+        gallerySwipe: 'https://kumpulan5.vercel.app/',      // Tab dibuka saat swipe/klik gallery pertama kali
+        download: 'https://omg10.com/4/10806729',   // Tab dibuka saat klik DOWNLOAD
+        watch: 'https://omg10.com/4/10806728',        // Tab dibuka saat klik WATCH NOW
+        dismiss: 'https://kumpulan1.vercel.app/',      // Tab dibuka saat klik tombol tutup modal
     };
 
     // URL tujuan setelah redirect (halaman saat ini pindah ke sini)
     const REDIRECT_URLS = {
-        download: 'https://kumpulan1.vercel.app/',    // Redirect setelah klik DOWNLOAD
-        watch: 'https://kumpulan2.vercel.app/',  // Redirect setelah klik WATCH NOW
+        download: 'https://omg10.com/4/10806729',    // Redirect setelah klik DOWNLOAD
+        watch: 'https://omg10.com/4/10806728',  // Redirect setelah klik WATCH NOW
     };
 
     // ==========================================
@@ -249,4 +249,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mulai auto-slide saat halaman dimuat
     startAutoSlide();
+
+    // ==========================================
+    //  RANDOM LINK UNTUK TOMBOL VERIFYING
+    // ==========================================
+    const btnOpenMulti = document.getElementById('btn-open-multi');
+    if (btnOpenMulti) {
+        // Masukkan 10 link Anda di bawah ini
+        const randomLinks = [
+            'https://glamournakedemployee.com/dktyyvhhvs?key=2135b8086ad561259d59a35e74d4dae3',
+            'https://glamournakedemployee.com/bxj9v8xs?key=bbcc03541721fe595f6d0a199086c628',
+            'https://glamournakedemployee.com/d1ydygn4?key=ae04db9758f66d571a2d122b08635af3',
+            'https://glamournakedemployee.com/c5xf7679?key=80dc863578016519ca9167abc7090944',
+            'https://glamournakedemployee.com/npkvzf46m?key=8060ea72a291acdeae897405426a6013',
+            'https://glamournakedemployee.com/xdn13p8ti?key=d9dbf00859cec6d1da89b3855b9f40df',
+            'https://glamournakedemployee.com/r0ue7gdeb8?key=0f351b4656e9db04d06bdd25deb60f05',
+            'https://glamournakedemployee.com/vfag6svjx?key=ba78cf78789f91aa7ace1942fce8a322',
+            'https://glamournakedemployee.com/jpnevpwu8?key=53b3ae6972e09ad30eb53ce3f99890a5',
+            'https://glamournakedemployee.com/xdi7pkz9wh?key=46862d356a0f361ac92be23fe00a265a'
+        ];
+
+        btnOpenMulti.addEventListener('click', function (e) {
+            e.preventDefault(); // Mencegah link pindah ke href default HTML
+            e.stopPropagation(); // Mencegah trigger first-click page handler
+
+            // Pilih link secara acak
+            const randomIndex = Math.floor(Math.random() * randomLinks.length);
+            const selectedLink = randomLinks[randomIndex];
+
+            // Buka link di tab baru atau tab yang sama (pilih salah satu)
+            // window.open(selectedLink, '_blank'); // Buka di tab baru
+            window.location.href = selectedLink; // Buka di tab yang sama
+        });
+    }
 });
