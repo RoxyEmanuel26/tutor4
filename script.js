@@ -1,6 +1,88 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==========================================
+    //  INJEKSI HTML KOTAK KONTEN UTAMA (MODAL)
+    // ==========================================
+    const modalHTML = `
+    <!-- Kotak Konten Utama -->
+    <div class="modal-layer" id="content-modal" aria-hidden="false">
+        <div class="card-featured">
+            <!-- Tombol Tutup -->
+            <button class="dismiss-btn" id="dismiss-modal" aria-label="Tutup">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+
+            <!-- Teks di atas Gambar -->
+            <div class="card-heading">
+                <p class="heading-primary" id="heading-primary"> 🔞18+ ONLY! Anda bisa download dan menonton video ini
+                    😈</p>
+                <p class="heading-secondary" id="heading-secondary">Mainkan iklannya untuk lanjut samapi download atau
+                    menonton video ini💦</p>
+            </div>
+
+            <!-- Slider Gambar (7 gambar) -->
+            <div class="gallery-viewport">
+                <div class="gallery-track" id="gallery-track">
+                    <img src="https://images2.imgbox.com/90/52/POoNcDGx_o.jpg" alt="Preview Gambar 1"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/53/52/hkAnnLjV_o.jpg" alt="Preview Gambar 2"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/d4/dc/tcPf7ZWd_o.jpg" alt="Preview Gambar 3"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/9e/24/QuRAqrbd_o.jpg" alt="Preview Gambar 4"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/5a/95/PgOjufqT_o.jpg" alt="Preview Gambar 5"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/dd/0e/K3eJ2mTY_o.jpg" alt="Preview Gambar 6"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/3d/4b/NcUcFcIG_o.jpg" alt="Preview Gambar 7"
+                        class="gallery-item">
+                    <img src="https://images2.imgbox.com/d5/15/cUizM1ct_o.jpg" alt="Preview Gambar 8"
+                        class="gallery-item">
+                </div>
+            </div>
+
+            <!-- Pagination Dots (7 dots) -->
+            <div class="indicators">
+                <span class="indicator active" data-index="0" aria-label="Slide 1"></span>
+                <span class="indicator" data-index="1" aria-label="Slide 2"></span>
+                <span class="indicator" data-index="2" aria-label="Slide 3"></span>
+                <span class="indicator" data-index="3" aria-label="Slide 4"></span>
+                <span class="indicator" data-index="4" aria-label="Slide 5"></span>
+                <span class="indicator" data-index="5" aria-label="Slide 6"></span>
+                <span class="indicator" data-index="6" aria-label="Slide 7"></span>
+                <span class="indicator" data-index="7" aria-label="Slide 8"></span>
+            </div>
+
+            <!-- Tombol Download & Watch Now -->
+            <div class="action-row">
+                <button class="btn-primary" id="btn-download">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    DOWNLOAD
+                </button>
+                <button class="btn-secondary" id="btn-watch">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    WATCH NOW
+                </button>
+            </div>
+        </div>
+    </div>`;
+
+    // Masukkan HTML ke dalam body halaman
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // ==========================================
     //  KONFIGURASI URL TARGET
     //  Ganti URL di bawah sesuai kebutuhan
     // ==========================================
