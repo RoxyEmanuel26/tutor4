@@ -1,143 +1,144 @@
 <!DOCTYPE html>
-<html lang="id">
-
+<html lang="en">
 <head>
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Artikel Modern & Ringan</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Video Feed - Scroll to Watch</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#000;color:#fff;overflow:hidden;height:100vh;width:100vw}
+        .video-container{height:100vh;width:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+        .video-container::-webkit-scrollbar{display:none}
+        .video-item{height:100vh;width:100%;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center;background:#1a1a1a}
+        .video-item video{width:100%;height:100%;object-fit:contain;background:#000}
+        .video-info{position:absolute;bottom:80px;left:15px;right:80px;z-index:10}
+        .video-title{font-size:16px;font-weight:600;margin-bottom:8px;text-shadow:1px 1px 3px rgba(0,0,0,0.8);max-height:60px;overflow:hidden}
+        .video-author{font-size:14px;color:#fff;opacity:0.9}
+        .video-author::before{content:'@';font-weight:bold}
+        .sidebar{position:absolute;right:10px;bottom:100px;display:flex;flex-direction:column;align-items:center;gap:20px;z-index:10}
+        .sidebar-btn{display:flex;flex-direction:column;align-items:center;background:transparent;border:none;color:#fff;cursor:pointer}
+        .sidebar-btn .icon{width:45px;height:45px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
+        .sidebar-btn .count{font-size:12px;margin-top:5px;font-weight:600;text-shadow:1px 1px 2px rgba(0,0,0,0.5)}
+        .play-pause-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;opacity:0;transition:opacity 0.3s;pointer-events:none}
+        .play-pause-overlay.show{opacity:1}
+        .loading-spinner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+        @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+        .top-nav{position:fixed;top:0;left:0;right:0;padding:15px 20px;background:linear-gradient(rgba(0,0,0,0.7),transparent);z-index:100;display:flex;justify-content:center;gap:30px}
+        .nav-tab{color:rgba(255,255,255,0.6);font-size:16px;font-weight:600;cursor:pointer;padding:8px 16px;border-radius:20px;transition:all 0.3s}
+        .nav-tab.active{color:#fff;background:rgba(255,255,255,0.2)}
+        .error-message{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(220,38,38,0.9);padding:20px 30px;border-radius:10px;text-align:center;z-index:1000;display:none}
+        .error-message.show{display:block}
+        .refresh-btn{margin-top:15px;padding:10px 25px;background:#fff;color:#dc2626;border:none;border-radius:25px;font-weight:600;cursor:pointer}
+    </style>
 </head>
-
 <body>
-
-    <a href="https://glamournakedemployee.com/c5xf7679?key=80dc863578016519ca9167abc7090944" class="open-multi"
-        id="btn-open-multi">
-        🔗 VERIFYING <br> Download (28mb) & Watching (1:34)
-    </a>
-
-    <!-- Latar Belakang Artikel ok-->
-    <!-- Tips & Tricks Article -->
-    <article class="content">
-        <h1>8 Powerful Google Search Tricks Most People Still Don’t Know (2026 Guide)</h1>
-        <p class="meta">Written on March 12, 2026 | By Editorial Team</p>
-
-        <p>Most people use Google every day, yet only a small percentage of users take advantage of its advanced search
-            features. By learning a few simple search tricks, you can find information faster, filter out irrelevant
-            results, and access hidden resources that are often buried deep within the internet.</p>
-
-        <p>These Google search techniques are increasingly popular among students, researchers, developers, and digital
-            professionals because they dramatically improve search efficiency.</p>
-
-        <blockquote>
-            "The difference between a good researcher and a great one often lies in how they search."
-        </blockquote>
-
-        <h2>1. Use Quotation Marks for Exact Searches</h2>
-        <p>If you want Google to search for an exact phrase, place the words inside quotation marks.</p>
-
-        <p>For example:</p>
-        <p><strong>"best productivity tools for students"</strong></p>
-
-        <p>This tells Google to only show results that contain that exact phrase instead of individual words scattered
-            throughout a page.</p>
-
-        <h2>2. Search Within a Specific Website</h2>
-        <p>You can search inside a particular website using the <strong>site:</strong> operator.</p>
-
-        <p>Example:</p>
-        <p><strong>site:github.com javascript chatbot</strong></p>
-
-        <p>This command will only display results from GitHub that match the keywords you entered.</p>
-
-        <h2>3. Exclude Words from Search Results</h2>
-        <p>If your search results include irrelevant topics, you can remove them using the minus symbol.</p>
-
-        <p>Example:</p>
-        <p><strong>apple benefits -fruit</strong></p>
-
-        <p>This will show results related to Apple technology instead of the fruit.</p>
-
-        <h2>4. Find Specific File Types</h2>
-        <p>Google can search for particular file formats such as PDFs, PowerPoint slides, or Excel sheets.</p>
-
-        <p>Example:</p>
-        <p><strong>machine learning tutorial filetype:pdf</strong></p>
-
-        <p>This is extremely useful for finding research papers, textbooks, or educational materials.</p>
-
-        <h2>5. Search for Similar Websites</h2>
-        <p>If you like a particular website, you can ask Google to show similar ones using the <strong>related:</strong>
-            command.</p>
-
-        <p>Example:</p>
-        <p><strong>related:medium.com</strong></p>
-
-        <p>This will display websites with similar content or audiences.</p>
-
-        <h2>6. Search for Numbers in a Range</h2>
-        <p>Google allows you to search within a specific number range using two periods between numbers.</p>
-
-        <p>Example:</p>
-        <p><strong>laptop price 500..1000</strong></p>
-
-        <p>This will show results for laptops priced between $500 and $1000.</p>
-
-        <h2>7. Use the Asterisk as a Wildcard</h2>
-        <p>The asterisk symbol (*) acts as a placeholder for unknown words.</p>
-
-        <p>Example:</p>
-        <p><strong>"the future of * technology"</strong></p>
-
-        <p>Google will try to fill the missing word with possible matches such as AI, mobile, or blockchain.</p>
-
-        <h2>8. Search by Image Instead of Text</h2>
-        <p>Another powerful feature is reverse image search. Instead of typing keywords, you can upload an image to
-            Google to find its source, higher resolution versions, or similar visuals.</p>
-
-        <p>This trick is commonly used to verify images, identify objects, or locate the original creator of a photo.
-        </p>
-
-        <h2>Why These Tricks Matter</h2>
-        <p>With billions of web pages online, knowing how to search effectively is a valuable digital skill. These
-            simple techniques help filter information quickly and reduce the time spent digging through irrelevant
-            results.</p>
-
-        <p>Whether you are a student, content creator, researcher, or developer, mastering Google search tricks can
-            significantly improve your productivity and research accuracy.</p>
-    </article>
-
-    <!-- Tempat Banner Iklan -->
-    <div class="ads-banner-container"
-        style="text-align: center; margin: 30px auto; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; overflow: hidden;">
-        <!-- Banner 300x250 -->
-        <div class="ad-unit">
-            <script>
-                atOptions = {
-                    'key': 'fb47600fc2b057437c7563e6b5c642d3',
-                    'format': 'iframe',
-                    'height': 250,
-                    'width': 300,
-                    'params': {}
-                };
-            </script>
-            <script src="https://www.highperformanceformat.com/fb47600fc2b057437c7563e6b5c642d3/invoke.js"></script>
-        </div>
-
-        <!-- Native Banner -->
-        <div class="ad-unit">
-            <script async="async" data-cfasync="false"
-                src="https://pl28946647.profitablecpmratenetwork.com/6cd0804dd4ed2062196f8e762d67b83b/invoke.js"></script>
-            <div id="container-6cd0804dd4ed2062196f8e762d67b83b"></div>
-        </div>
+    <div class="top-nav">
+        <div class="nav-tab" data-tag="funny">Funny</div>
+        <div class="nav-tab active" data-tag="trending">Trending</div>
+        <div class="nav-tab" data-tag="gaming">Gaming</div>
+        <div class="nav-tab" data-tag="animals">Animals</div>
     </div>
+    <div class="video-container" id="videoContainer"></div>
+    <div class="error-message" id="errorMessage">
+        <p id="errorText">Failed to load videos</p>
+        <button class="refresh-btn" onclick="loadVideos()">Retry</button>
+    </div>
+    <script>
+        const API_BASE='https://api.redgifs.com/v2';
+        let authToken=null,currentVideos=[],currentIndex=0,currentTag='trending',isLoading=false;
+        
+        async function getAuthToken(){
+            try{
+                const response=await fetch(`${API_BASE}/auth/temporary`,{method:'GET',headers:{'Accept':'application/json'}});
+                if(!response.ok)throw new Error('Failed to get auth token');
+                const data=await response.json();
+                authToken=data.token;
+                return authToken;
+            }catch(error){
+                console.error('Auth error:',error);
+                showError('Authentication failed. Please refresh.');
+                return null;
+            }
+        }
 
-    <!-- Script Utama -->
-    <script src="script.js"></script>
+        async function fetchVideos(tag='trending',page=1){
+            try{
+                if(!authToken)await getAuthToken();
+                const url=tag==='trending'?`${API_BASE}/gifs/trending?count=10&page=${page}`:`${API_BASE}/gifs/search?tags=${tag}&count=10&page=${page}`;
+                const response=await fetch(url,{method:'GET',headers:{'Authorization':`Bearer ${authToken}`,'Accept':'application/json'}});
+                if(!response.ok){
+                    if(response.status===401){authToken=null;await getAuthToken();return fetchVideos(tag,page);}
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data=await response.json();
+                return data.gifs||[];
+            }catch(error){
+                console.error('Fetch error:',error);
+                showError('Failed to load videos. Please try again.');
+                return[];
+            }
+        }
 
-    <!-- Script Iklan (file terpisah agar rapi) -->
-    <script src="ads.js"></script>
+        function createVideoElement(videoData,index){
+            const item=document.createElement('div');
+            item.className='video-item';
+            item.dataset.index=index;
+            const urls=videoData.urls;
+            const videoUrl=urls.hd||urls.sd||urls.gif;
+            item.innerHTML=`<video src="${videoUrl}" loop playsinline preload="metadata" poster="${videoData.poster||''}"></video><div class="loading-spinner"></div><div class="play-pause-overlay">▶</div><div class="video-info"><div class="video-title">${videoData.title||'Untitled'}</div><div class="video-author">${videoData.author||'unknown'}</div></div><div class="sidebar"><button class="sidebar-btn" onclick="toggleLike(this)"><div class="icon">♥</div><span class="count">${formatNumber(videoData.likes||0)}</span></button><button class="sidebar-btn"><div class="icon">💬</div><span class="count">${formatNumber(videoData.comments||0)}</span></button><button class="sidebar-btn" onclick="shareVideo('${videoData.id}')"><div class="icon">↗</div><span class="count">Share</span></button></div>`;
+            const video=item.querySelector('video'),spinner=item.querySelector('.loading-spinner'),playOverlay=item.querySelector('.play-pause-overlay');
+            video.addEventListener('loadeddata',()=>{spinner.style.display='none';});
+            video.addEventListener('waiting',()=>{spinner.style.display='block';});
+            video.addEventListener('playing',()=>{spinner.style.display='none';playOverlay.classList.remove('show');});
+            video.addEventListener('click',()=>togglePlay(video,playOverlay));
+            const observer=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting&&entry.intersectionRatio>0.7){video.play().catch(e=>console.log('Autoplay prevented'));currentIndex=index;}else{video.pause();video.currentTime=0;}});},{threshold:[0.7]});
+            observer.observe(item);
+            return item;
+        }
 
+        function togglePlay(video,overlay){
+            if(video.paused){video.play();overlay.textContent='▶';overlay.classList.add('show');setTimeout(()=>overlay.classList.remove('show'),500);}
+            else{video.pause();overlay.textContent='⏸';overlay.classList.add('show');setTimeout(()=>overlay.classList.remove('show'),500);}
+        }
+
+        function formatNumber(num){if(num>=1000000)return(num/1000000).toFixed(1)+'M';else if(num>=1000)return(num/1000).toFixed(1)+'K';return num.toString();}
+        function toggleLike(btn){const icon=btn.querySelector('.icon');icon.style.color=icon.style.color==='red'?'#fff':'red';}
+        function shareVideo(id){const url=`https://redgifs.com/watch/${id}`;if(navigator.share){navigator.share({title:'Check out this video',url:url}).catch(console.error);}else{navigator.clipboard.writeText(url);alert('Link copied!');}}
+        function showError(message){document.getElementById('errorText').textContent=message;document.getElementById('errorMessage').classList.add('show');}
+        function hideError(){document.getElementById('errorMessage').classList.remove('show');}
+
+        async function loadVideos(){
+            if(isLoading)return;
+            isLoading=true;hideError();
+            const container=document.getElementById('videoContainer');
+            container.innerHTML='';currentVideos=[];
+            const videos=await fetchVideos(currentTag);
+            if(videos.length===0){showError('No videos available. Try another category.');isLoading=false;return;}
+            currentVideos=videos;
+            videos.forEach((video,index)=>{container.appendChild(createVideoElement(video,index));});
+            isLoading=false;
+        }
+
+        document.querySelectorAll('.nav-tab').forEach(tab=>{
+            tab.addEventListener('click',()=>{
+                document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+                tab.classList.add('active');currentTag=tab.dataset.tag;loadVideos();
+            });
+        });
+
+        const container=document.getElementById('videoContainer');
+        container.addEventListener('scroll',async()=>{
+            const scrollTop=container.scrollTop,scrollHeight=container.scrollHeight,clientHeight=container.clientHeight;
+            if(scrollTop+clientHeight>=scrollHeight-500&&!isLoading){
+                isLoading=true;
+                const moreVideos=await fetchVideos(currentTag,Math.floor(currentVideos.length/10)+2);
+                moreVideos.forEach((video,index)=>{currentVideos.push(video);container.appendChild(createVideoElement(video,currentVideos.length));});
+                isLoading=false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded',async()=>{await getAuthToken();loadVideos();});
+        document.addEventListener('visibilitychange',()=>{if(document.hidden){document.querySelectorAll('video').forEach(v=>v.pause());}});
+    </script>
 </body>
-
 </html>
