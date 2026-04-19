@@ -58,15 +58,36 @@
     </div>
     <script>
         const API_BASE='https://api.redgifs.com/v2';
-        let authToken=null,currentVideos=[],currentIndex=0,currentTag='trending',isLoading=false,currentPage=1,hasMore=true;
-        let touchStartY=0,touchEndY=0;
+        let authToken=null,authExpiry=null,currentVideos=[],currentIndex=0,currentTag='trending',isLoading=false,currentPage=1,hasMore=true;
+        let touchStartY=0,touchEndY=0,lastTapTime=0,scrollTimeout=null,observer=null;
+        const VIDEO_CACHE=new Map();
+        const MAX_CACHED_VIDEOS=20;
         
-        async function getAuthToken(){
+        // Debounce function untuk mencegah multiple calls
+        function debounce(func,wait){
+            let timeout;
+            return function executedFunction(...args){
+                const later=()=>{
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout=setTimeout(later,wait);
+            };
+        }
+
+        async function getAuthToken(forceRefresh=false){
+            // Cek jika token masih valid (expired dalam 5 menit)
+            if(authToken&&!forceRefresh&&authExpiry&&(Date.now()<authExpiry-300000)){
+                return authToken;
+            }
             try{
                 const response=await fetch(`${API_BASE}/auth/temporary`,{method:'GET',headers:{'Accept':'application/json'}});
                 if(!response.ok)throw new Error('Failed to get auth token');
                 const data=await response.json();
                 authToken=data.token;
+                // Set expiry time (asumsi token valid 1 jam)
+                authExpiry=Date.now()+3600000;
                 return authToken;
             }catch(error){
                 console.error('Auth error:',error);
@@ -77,11 +98,15 @@
 
         async function fetchVideos(tag='trending',page=1){
             try{
-                if(!authToken)await getAuthToken();
+                await getAuthToken();
                 const url=tag==='trending'?`${API_BASE}/gifs/trending?count=10&page=${page}`:`${API_BASE}/gifs/search?tags=${tag}&count=10&page=${page}`;
                 const response=await fetch(url,{method:'GET',headers:{'Authorization':`Bearer ${authToken}`,'Accept':'application/json'}});
                 if(!response.ok){
-                    if(response.status===401){authToken=null;await getAuthToken();return fetchVideos(tag,page);}
+                    if(response.status===401){
+                        authToken=null;
+                        await getAuthToken(true);
+                        return fetchVideos(tag,page);
+                    }
                     throw new Error(`HTTP ${response.status}`);
                 }
                 const data=await response.json();
@@ -89,6 +114,11 @@
                 return data.gifs||[];
             }catch(error){
                 console.error('Fetch error:',error);
+                if(error.message.includes('401')){
+                    authToken=null;
+                    await getAuthToken(true);
+                    return fetchVideos(tag,page);
+                }
                 showError('Failed to load videos. Please try again.');
                 return[];
             }
