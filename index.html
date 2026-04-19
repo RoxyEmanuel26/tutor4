@@ -63,6 +63,18 @@
         const VIDEO_CACHE=new Map();
         const MAX_CACHED_VIDEOS=20;
         
+        // Logging untuk debugging
+        function log(...args){console.log('[VideoFeed]',...args);}
+        function logError(...args){console.error('[VideoFeed ERROR]',...args);}
+        
+        // CORS Proxy fallback jika direct access gagal
+        const CORS_PROXIES=[
+            '',  // Try direct first
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url='
+        ];
+        let currentProxyIndex=0;
+        
         // Singleton Intersection Observer untuk semua video
         let videoObserver=null;
         function getVideoObserver(){
@@ -112,19 +124,41 @@
             const now=Date.now();
             // Cek jika token masih valid (expired dalam 5 menit)
             if(authToken&&!forceRefresh&&authExpiry&&(now<authExpiry-300000)){
+                log('Using cached auth token');
                 return authToken;
             }
             try{
-                const response=await fetch(`${API_BASE}/auth/temporary`,{method:'GET',headers:{'Accept':'application/json'}});
-                if(!response.ok)throw new Error('Failed to get auth token');
+                log('Fetching new auth token...');
+                // Try with CORS proxies if direct fails
+                let response=null;
+                for(let i=currentProxyIndex;i<CORS_PROXIES.length;i++){
+                    const proxy=CORS_PROXIES[i];
+                    const url=proxy?`${proxy}${encodeURIComponent(`${API_BASE}/auth/temporary`)}`:`${API_BASE}/auth/temporary`;
+                    log(`Trying auth with proxy: ${proxy||'direct'}`);
+                    try{
+                        response=await fetch(url,{method:'GET',headers:{'Accept':'application/json'}});
+                        if(response.ok)break;
+                    }catch(e){
+                        logError(`Proxy ${proxy} failed:`,e);
+                        continue;
+                    }
+                }
+                if(!response||!response.ok){
+                    logError('Auth response not OK:',response?response.status:'no response');
+                    throw new Error('Failed to get auth token');
+                }
                 const data=await response.json();
-                if(!data.token)throw new Error('No token received');
+                if(!data.token){
+                    logError('No token in response');
+                    throw new Error('No token received');
+                }
                 authToken=data.token;
                 // Set expiry time (asumsi token valid 1 jam)
                 authExpiry=now+3600000;
+                log('Auth token received, expires in 1 hour');
                 return authToken;
             }catch(error){
-                console.error('Auth error:',error);
+                logError('Auth error:',error);
                 showError('Authentication failed. Please refresh.');
                 return null;
             }
@@ -132,22 +166,43 @@
 
         async function fetchVideos(tag='trending',page=1){
             try{
-                await getAuthToken();
-                const url=tag==='trending'?`${API_BASE}/gifs/trending?count=10&page=${page}`:`${API_BASE}/gifs/search?tags=${tag}&count=10&page=${page}`;
-                const response=await fetch(url,{method:'GET',headers:{'Authorization':`Bearer ${authToken}`,'Accept':'application/json'}});
-                if(!response.ok){
-                    if(response.status===401){
+                log(`Fetching videos for tag: ${tag}, page: ${page}`);
+                const token=await getAuthToken();
+                if(!token){
+                    logError('No auth token available');
+                    return[];
+                }
+                const baseUrl=tag==='trending'?`${API_BASE}/gifs/trending?count=10&page=${page}`:`${API_BASE}/gifs/search?tags=${tag}&count=10&page=${page}`;
+                // Try with CORS proxies
+                let response=null;
+                for(let i=currentProxyIndex;i<CORS_PROXIES.length;i++){
+                    const proxy=CORS_PROXIES[i];
+                    const url=proxy?`${proxy}${encodeURIComponent(baseUrl)}`:baseUrl;
+                    log(`Trying videos with proxy: ${proxy||'direct'}`);
+                    try{
+                        response=await fetch(url,{method:'GET',headers:{'Authorization':`Bearer ${token}`,'Accept':'application/json'}});
+                        if(response.ok)break;
+                    }catch(e){
+                        logError(`Proxy ${proxy} failed:`,e);
+                        continue;
+                    }
+                }
+                if(!response||!response.ok){
+                    logError('Video response not OK:',response?response.status:'no response');
+                    if(response&&response.status===401){
+                        logError('401 Unauthorized, refreshing token...');
                         authToken=null;
                         await getAuthToken(true);
                         return fetchVideos(tag,page);
                     }
-                    throw new Error(`HTTP ${response.status}`);
+                    throw new Error(`HTTP ${response?response.status:'unknown'}`);
                 }
                 const data=await response.json();
+                log('Received gifs:',data.gifs?data.gifs.length:0);
                 hasMore=data.gifs&&data.gifs.length===10;
                 return data.gifs||[];
             }catch(error){
-                console.error('Fetch error:',error);
+                logError('Fetch error:',error);
                 if(error.message.includes('401')){
                     authToken=null;
                     await getAuthToken(true);
@@ -401,9 +456,14 @@
                 currentIndex=0;
             }
             
+            log('Loading videos, reset:',reset,'page:',currentPage);
             const videos=await fetchVideos(currentTag,currentPage);
+            log('Videos loaded:',videos.length);
             if(videos.length===0){
-                if(reset)showError('No videos available. Try another category.');
+                if(reset){
+                    logError('No videos available for tag:',currentTag);
+                    showError('No videos available. Try another category.');
+                }
                 isLoading=false;
                 return;
             }
@@ -499,8 +559,15 @@
 
         // Initialize dengan cleanup yang benar
         document.addEventListener('DOMContentLoaded',async()=>{
-            await getAuthToken();
-            loadVideos(true);
+            log('DOM Content Loaded, initializing...');
+            const token=await getAuthToken();
+            if(token){
+                log('Auth successful, loading videos...');
+                loadVideos(true);
+            }else{
+                logError('Auth failed on init');
+                showError('Failed to authenticate. Please refresh.');
+            }
         });
 
         // Pause when tab is hidden - pause semua video
