@@ -54,40 +54,74 @@
     <div class="loading-more" id="loadingMore"><div class="loading-spinner" style="width:30px;height:30px;border-width:3px"></div></div>
     <div class="error-message" id="errorMessage">
         <p id="errorText">Failed to load videos</p>
-        <button class="refresh-btn" onclick="loadVideos()">Retry</button>
+        <button class="refresh-btn" id="retryBtn">Retry</button>
     </div>
     <script>
         const API_BASE='https://api.redgifs.com/v2';
         let authToken=null,authExpiry=null,currentVideos=[],currentIndex=0,currentTag='trending',isLoading=false,currentPage=1,hasMore=true;
-        let touchStartY=0,touchEndY=0,lastTapTime=0,scrollTimeout=null,observer=null;
+        let touchStartY=0,touchEndY=0,lastTapTime=0,scrollTimeout=null;
         const VIDEO_CACHE=new Map();
         const MAX_CACHED_VIDEOS=20;
         
-        // Debounce function untuk mencegah multiple calls
-        function debounce(func,wait){
-            let timeout;
-            return function executedFunction(...args){
-                const later=()=>{
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout=setTimeout(later,wait);
+        // Singleton Intersection Observer untuk semua video
+        let videoObserver=null;
+        function getVideoObserver(){
+            if(!videoObserver){
+                videoObserver=new IntersectionObserver((entries)=>{
+                    entries.forEach(entry=>{
+                        const item=entry.target;
+                        const video=item.querySelector('video');
+                        const spinner=item.querySelector('.loading-spinner');
+                        const playOverlay=item.querySelector('.play-pause-overlay');
+                        const progressBar=item.querySelector('.progress-fill');
+                        
+                        if(!video||!spinner||!playOverlay||!progressBar)return;
+                        
+                        if(entry.isIntersecting&&entry.intersectionRatio>0.7){
+                            video.muted=true;
+                            video.play().catch(e=>{
+                                if(e.name!=='AbortError')console.log('Autoplay prevented');
+                            });
+                            // Update currentIndex
+                            const index=parseInt(item.dataset.index);
+                            if(!isNaN(index))currentIndex=index;
+                        }else{
+                            video.pause();
+                            video.currentTime=0;
+                            progressBar.style.width='0%';
+                        }
+                    });
+                },{threshold:[0.7],rootMargin:'50px'});
+            }
+            return videoObserver;
+        }
+
+        // Throttle function untuk scroll event
+        function throttle(func,limit){
+            let inThrottle;
+            return function(...args){
+                if(!inThrottle){
+                    func.apply(this,args);
+                    inThrottle=true;
+                    setTimeout(()=>inThrottle=false,limit);
+                }
             };
         }
 
         async function getAuthToken(forceRefresh=false){
+            const now=Date.now();
             // Cek jika token masih valid (expired dalam 5 menit)
-            if(authToken&&!forceRefresh&&authExpiry&&(Date.now()<authExpiry-300000)){
+            if(authToken&&!forceRefresh&&authExpiry&&(now<authExpiry-300000)){
                 return authToken;
             }
             try{
                 const response=await fetch(`${API_BASE}/auth/temporary`,{method:'GET',headers:{'Accept':'application/json'}});
                 if(!response.ok)throw new Error('Failed to get auth token');
                 const data=await response.json();
+                if(!data.token)throw new Error('No token received');
                 authToken=data.token;
                 // Set expiry time (asumsi token valid 1 jam)
-                authExpiry=Date.now()+3600000;
+                authExpiry=now+3600000;
                 return authToken;
             }catch(error){
                 console.error('Auth error:',error);
@@ -136,76 +170,131 @@
             const likes=videoData.likes||Math.floor(Math.random()*50000);
             const comments=videoData.comments||Math.floor(Math.random()*1000);
             
-            item.innerHTML=`
-                <div class="video-wrapper">
-                    <video src="${videoUrl}" loop playsinline preload="metadata" poster="${videoData.poster||''}" muted></video>
-                    <div class="loading-spinner"></div>
-                    <div class="play-pause-overlay">▶</div>
-                    <button class="fullscreen-btn" onclick="toggleFullscreen(this)">⛶</button>
-                    <div class="progress-bar"><div class="progress-fill"></div></div>
-                </div>
-                <div class="video-info">
-                    <div class="video-title">${escapeHtml(title)}</div>
-                    <div class="video-author">${escapeHtml(author)}</div>
-                    <div class="video-tags">#${videoData.tags?videoData.tags[0]||'video':'viral'}</div>
-                </div>
-                <div class="sidebar">
-                    <button class="sidebar-btn" onclick="toggleLike(this)"><div class="icon">♥</div><span class="count">${formatNumber(likes)}</span></button>
-                    <button class="sidebar-btn"><div class="icon">💬</div><span class="count">${formatNumber(comments)}</span></button>
-                    <button class="sidebar-btn" onclick="shareVideo('${videoData.id}')"><div class="icon">↗</div><span class="count">Share</span></button>
-                </div>
+            // Gunakan DocumentFragment untuk performa lebih baik
+            const fragment=document.createDocumentFragment();
+            const wrapper=document.createElement('div');
+            wrapper.className='video-wrapper';
+            
+            const video=document.createElement('video');
+            video.src=videoUrl;
+            video.loop=true;
+            video.playsInline=true;
+            video.preload='metadata';
+            video.poster=videoData.poster||'';
+            video.muted=true;
+            
+            const spinner=document.createElement('div');
+            spinner.className='loading-spinner';
+            
+            const playOverlay=document.createElement('div');
+            playOverlay.className='play-pause-overlay';
+            playOverlay.textContent='▶';
+            
+            const fullscreenBtn=document.createElement('button');
+            fullscreenBtn.className='fullscreen-btn';
+            fullscreenBtn.textContent='⛶';
+            fullscreenBtn.type='button';
+            fullscreenBtn.setAttribute('aria-label','Toggle fullscreen');
+            
+            const progressBarContainer=document.createElement('div');
+            progressBarContainer.className='progress-bar';
+            const progressBar=document.createElement('div');
+            progressBar.className='progress-fill';
+            progressBarContainer.appendChild(progressBar);
+            
+            wrapper.appendChild(video);
+            wrapper.appendChild(spinner);
+            wrapper.appendChild(playOverlay);
+            wrapper.appendChild(fullscreenBtn);
+            wrapper.appendChild(progressBarContainer);
+            fragment.appendChild(wrapper);
+            
+            const infoDiv=document.createElement('div');
+            infoDiv.className='video-info';
+            infoDiv.innerHTML=`
+                <div class="video-title">${escapeHtml(title)}</div>
+                <div class="video-author">${escapeHtml(author)}</div>
+                <div class="video-tags">#${videoData.tags?escapeHtml(videoData.tags[0]||'video'):'viral'}</div>
             `;
+            fragment.appendChild(infoDiv);
             
-            const videoWrapper=item.querySelector('.video-wrapper');
-            const video=item.querySelector('video');
-            const spinner=item.querySelector('.loading-spinner');
-            const playOverlay=item.querySelector('.play-pause-overlay');
-            const progressBar=item.querySelector('.progress-fill');
+            const sidebar=document.createElement('div');
+            sidebar.className='sidebar';
+            sidebar.innerHTML=`
+                <button class="sidebar-btn like-btn" type="button" aria-label="Like"><div class="icon">♥</div><span class="count">${formatNumber(likes)}</span></button>
+                <button class="sidebar-btn" type="button" aria-label="Comment"><div class="icon">💬</div><span class="count">${formatNumber(comments)}</span></button>
+                <button class="sidebar-btn share-btn" type="button" aria-label="Share"><div class="icon">↗</div><span class="count">Share</span></button>
+            `;
+            fragment.appendChild(sidebar);
             
-            // Video event listeners
-            video.addEventListener('loadeddata',()=>{spinner.style.display='none';});
+            item.appendChild(fragment);
+            
+            // Video event listeners dengan error handling
+            video.addEventListener('loadeddata',()=>{spinner.style.display='none';},{once:true});
             video.addEventListener('waiting',()=>{spinner.style.display='block';});
             video.addEventListener('playing',()=>{spinner.style.display='none';playOverlay.classList.remove('show');});
             video.addEventListener('timeupdate',()=>{
-                const percent=(video.currentTime/video.duration)*100;
-                progressBar.style.width=percent+'%';
-            });
-            video.addEventListener('ended',()=>{progressBar.style.width='0%';});
-            
-            // Click to play/pause
-            videoWrapper.addEventListener('click',(e)=>{
-                if(!e.target.classList.contains('sidebar-btn')&&!e.target.classList.contains('fullscreen-btn')){
-                    togglePlay(video,playOverlay);
+                if(video.duration&&isFinite(video.duration)){
+                    const percent=(video.currentTime/video.duration)*100;
+                    progressBar.style.width=percent+'%';
                 }
             });
+            video.addEventListener('ended',()=>{progressBar.style.width='0%';});
+            video.addEventListener('error',(e)=>{
+                console.error('Video load error:',e);
+                spinner.style.display='none';
+                video.style.display='none';
+                const errorIcon=document.createElement('div');
+                errorIcon.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;opacity:0.7;';
+                errorIcon.textContent='⚠️';
+                wrapper.appendChild(errorIcon);
+            });
             
-            // Double tap detection
+            // Click to play/pause - gunakan event delegation
+            wrapper.addEventListener('click',(e)=>{
+                const target=e.target;
+                if(target.classList.contains('sidebar-btn')||target.classList.contains('fullscreen-btn')||target.closest('.sidebar-btn'))return;
+                togglePlay(video,playOverlay);
+            });
+            
+            // Double tap detection untuk fullscreen
             let lastTap=0;
-            videoWrapper.addEventListener('touchend',(e)=>{
+            wrapper.addEventListener('touchend',(e)=>{
                 const currentTime=new Date().getTime();
                 const tapLength=currentTime-lastTap;
                 if(tapLength<300&&tapLength>0){
-                    toggleFullscreen(videoWrapper.querySelector('.fullscreen-btn'));
+                    toggleFullscreen(fullscreenBtn);
                     e.preventDefault();
                 }
                 lastTap=currentTime;
-            });
+            },{passive:false});
             
-            // Intersection Observer for auto play
-            const observer=new IntersectionObserver((entries)=>{
-                entries.forEach(entry=>{
-                    if(entry.isIntersecting&&entry.intersectionRatio>0.7){
-                        video.muted=true;
-                        video.play().catch(e=>console.log('Autoplay prevented'));
-                        currentIndex=globalIndex;
+            // Gunakan singleton observer
+            getVideoObserver().observe(item);
+            
+            // Like button handler
+            const likeBtn=item.querySelector('.like-btn');
+            if(likeBtn){
+                likeBtn.addEventListener('click',function(){
+                    this.classList.toggle('like-active');
+                    const countSpan=this.querySelector('.count');
+                    let count=parseCount(countSpan.textContent);
+                    if(this.classList.contains('like-active')){
+                        count++;
                     }else{
-                        video.pause();
-                        video.currentTime=0;
-                        progressBar.style.width='0%';
+                        count--;
                     }
+                    countSpan.textContent=formatNumber(count);
                 });
-            },{threshold:[0.7]});
-            observer.observe(item);
+            }
+            
+            // Share button handler
+            const shareBtn=item.querySelector('.share-btn');
+            if(shareBtn){
+                shareBtn.addEventListener('click',()=>{
+                    shareVideo(videoData.id);
+                });
+            }
             
             return item;
         }
@@ -300,6 +389,12 @@
             const container=document.getElementById('videoContainer');
             
             if(reset){
+                // Cleanup observer untuk semua video yang ada
+                if(videoObserver){
+                    document.querySelectorAll('.video-item').forEach(item=>{
+                        videoObserver.unobserve(item);
+                    });
+                }
                 container.innerHTML='';
                 currentVideos=[];
                 currentPage=1;
@@ -314,10 +409,12 @@
             }
             
             currentVideos=[...currentVideos,...videos];
+            const fragment=document.createDocumentFragment();
             videos.forEach((video,index)=>{
                 const globalIndex=currentVideos.length-videos.length+index;
-                container.appendChild(createVideoElement(video,globalIndex));
+                fragment.appendChild(createVideoElement(video,globalIndex));
             });
+            container.appendChild(fragment);
             
             currentPage++;
             isLoading=false;
@@ -333,9 +430,14 @@
             });
         });
 
-        // Infinite scroll
+        // Retry button handler
+        document.getElementById('retryBtn')?.addEventListener('click',()=>{
+            loadVideos(true);
+        });
+
+        // Infinite scroll dengan throttle
         const container=document.getElementById('videoContainer');
-        container.addEventListener('scroll',async()=>{
+        const handleScroll=async()=>{
             const scrollTop=container.scrollTop;
             const scrollHeight=container.scrollHeight;
             const clientHeight=container.clientHeight;
@@ -346,10 +448,12 @@
                 
                 const moreVideos=await fetchVideos(currentTag,currentPage);
                 if(moreVideos.length>0){
+                    const fragment=document.createDocumentFragment();
                     moreVideos.forEach((video,index)=>{
                         const globalIndex=currentVideos.length+index;
-                        container.appendChild(createVideoElement(video,globalIndex));
+                        fragment.appendChild(createVideoElement(video,globalIndex));
                     });
+                    container.appendChild(fragment);
                     currentVideos=[...currentVideos,...moreVideos];
                     currentPage++;
                 }
@@ -357,7 +461,8 @@
                 isLoading=false;
                 document.getElementById('loadingMore').classList.remove('show');
             }
-        });
+        };
+        container.addEventListener('scroll',throttle(handleScroll,200),{passive:true});
 
         // Touch gestures for swipe
         container.addEventListener('touchstart',(e)=>{
@@ -392,25 +497,43 @@
             }
         });
 
-        // Initialize
+        // Initialize dengan cleanup yang benar
         document.addEventListener('DOMContentLoaded',async()=>{
             await getAuthToken();
             loadVideos(true);
         });
 
-        // Pause when tab is hidden
+        // Pause when tab is hidden - pause semua video
         document.addEventListener('visibilitychange',()=>{
             if(document.hidden){
-                document.querySelectorAll('video').forEach(v=>v.pause());
+                document.querySelectorAll('video').forEach(v=>{
+                    v.pause();
+                });
             }
         });
 
-        // Handle fullscreen change
+        // Handle fullscreen change dengan selector yang benar
         document.addEventListener('fullscreenchange',()=>{
-            const btn=document.querySelector('.video-item:not([style*="display:none"]):nth-child('+(currentIndex+1)+') .fullscreen-btn');
-            if(btn){
-                btn.textContent=document.fullscreenElement?'❐':'⛶';
+            const currentVideoItem=document.querySelector(`#video-${currentIndex}`);
+            if(currentVideoItem){
+                const btn=currentVideoItem.querySelector('.fullscreen-btn');
+                if(btn){
+                    btn.textContent=document.fullscreenElement?'❐':'⛶';
+                }
             }
+        });
+
+        // Cleanup saat page unload untuk mencegah memory leak
+        window.addEventListener('beforeunload',()=>{
+            if(videoObserver){
+                videoObserver.disconnect();
+                videoObserver=null;
+            }
+            document.querySelectorAll('video').forEach(v=>{
+                v.pause();
+                v.src='';
+                v.load();
+            });
         });
     </script>
 </body>
