@@ -1,19 +1,19 @@
 /* =============================================
- *  VIDEO FEED - Clean Architecture Stylesheet
+ *  VIDEO FEED - Premium Design System
  * =============================================
  *  Sections:
- *  1. Reset & Base
- *  2. Top Navigation
+ *  1. Reset & Base (Modern Typography)
+ *  2. Top Navigation (Glassmorphism)
  *  3. Video Container & Items
  *  4. Video Player Controls
- *  5. Sidebar (Like, Comment, Share)
- *  6. Video Info Overlay
- *  7. Loading & Error States
- *  8. Utilities & Animations
+ *  5. Sidebar (Like, Comment, Share) — Glow Effects
+ *  6. Video Info Overlay — Modern Text
+ *  7. Loading & Error States — Gradient Accents
+ *  8. Utilities & Animations (Micro-interactions)
  * ============================================= */
 
 /* ==========================================
- *  1. RESET & BASE
+ *  1. RESET & BASE — Modern Typography
  * ========================================== */
 * {
     margin: 0;
@@ -21,49 +21,81 @@
     box-sizing: border-box;
 }
 
+:root {
+    /* Premium Color Palette */
+    --accent-primary: #a855f7;       /* Purple */
+    --accent-secondary: #ec4899;     /* Pink */
+    --accent-tertiary: #3b82f6;      /* Blue */
+    --glow-purple: rgba(168, 85, 247, 0.4);
+    --glow-pink: rgba(236, 72, 153, 0.35);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --surface-dark: #0a0a0a;
+    --surface-card: #1a1a2e;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #000;
-    color: #fff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--surface-dark);
+    color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
     width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ==========================================
- *  2. TOP NAVIGATION (Kategori Tab)
+ *  2. TOP NAVIGATION — Glassmorphism
  * ========================================== */
 .top-nav {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    padding: 15px 20px;
-    background: linear-gradient(rgba(0, 0, 0, 0.8), transparent);
+    padding: 12px 20px;
+    background: rgba(10, 10, 10, 0.55);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    border-bottom: 1px solid var(--glass-border);
     z-index: 100;
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 8px;
 }
 
 .nav-tab {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 14px;
+    color: var(--text-secondary);
+    font-size: 13px;
     font-weight: 600;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 20px;
-    transition: all 0.3s;
+    padding: 8px 18px;
+    border-radius: 22px;
+    border: 1px solid transparent;
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     white-space: nowrap;
+    user-select: none;
 }
 
 .nav-tab.active {
     color: #fff;
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-color: transparent;
+    box-shadow: 0 4px 15px var(--glow-purple), 0 1px 3px rgba(0,0,0,0.3);
 }
 
-.nav-tab:hover {
-    background: rgba(255, 255, 255, 0.1);
+.nav-tab:not(.active):hover {
+    color: #fff;
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    transform: translateY(-1px);
+}
+
+.nav-tab:active {
+    transform: scale(0.95);
 }
 
 /* ==========================================
@@ -89,7 +121,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1a1a1a;
+    background: var(--surface-card);
 }
 
 .video-wrapper {
@@ -108,6 +140,18 @@ body {
     background: #000;
 }
 
+/* Subtle vignette overlay for cinematic feel */
+.video-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 30%),
+        linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 15%);
+    pointer-events: none;
+    z-index: 5;
+}
+
 /* ==========================================
  *  4. VIDEO PLAYER CONTROLS
  * ========================================== */
@@ -117,17 +161,18 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 80px;
+    transform: translate(-50%, -50%) scale(0.5);
+    font-size: 72px;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
     z-index: 20;
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
 }
 
 .play-pause-overlay.show {
     opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* Progress Bar */
@@ -136,51 +181,64 @@ body {
     bottom: 0;
     left: 0;
     height: 3px;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
     z-index: 15;
     width: 100%;
 }
 
 .progress-fill {
     height: 100%;
-    background: #fff;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
     width: 0%;
     transition: width 0.1s linear;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--glow-purple);
 }
 
 /* Fullscreen Button */
 .fullscreen-btn {
     position: absolute;
-    top: 15px;
+    top: 60px; /* Below the glassmorphism nav */
     right: 15px;
     z-index: 20;
-    background: rgba(0, 0, 0, 0.5);
-    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
     color: #fff;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 12px;
     font-size: 18px;
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, background 0.2s, transform 0.2s;
 }
 
 .video-wrapper:hover .fullscreen-btn {
     opacity: 1;
 }
 
+.fullscreen-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.fullscreen-btn:active {
+    transform: scale(0.9);
+}
+
 /* ==========================================
- *  5. SIDEBAR (Like, Comment, Share)
+ *  5. SIDEBAR (Like, Comment, Share) — Glow FX
  * ========================================== */
 .sidebar {
     position: absolute;
     right: 10px;
-    bottom: 120px;
+    bottom: 140px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 18px;
     z-index: 10;
 }
 
@@ -192,39 +250,59 @@ body {
     border: none;
     color: #fff;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sidebar-btn:active {
-    transform: scale(0.9);
+    transform: scale(0.85);
 }
 
 .sidebar-btn .icon {
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.15);
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.sidebar-btn:hover .icon {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
 }
 
 .sidebar-btn .count {
-    font-size: 12px;
-    margin-top: 5px;
+    font-size: 11px;
+    margin-top: 4px;
     font-weight: 600;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
+/* Like Active State — Heart Glow */
 .like-active .icon {
-    background: rgba(255, 0, 0, 0.3);
-    color: red;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.35), rgba(239, 68, 68, 0.35));
+    border-color: rgba(236, 72, 153, 0.5);
+    color: #ec4899;
+    box-shadow: 0 0 20px var(--glow-pink);
+    animation: likePopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes likePopIn {
+    0% { transform: scale(0.5); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
 }
 
 /* ==========================================
- *  6. VIDEO INFO OVERLAY
+ *  6. VIDEO INFO OVERLAY — Modern Text
  * ========================================== */
 .video-info {
     position: absolute;
@@ -237,10 +315,11 @@ body {
 }
 
 .video-title {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
     margin-bottom: 8px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -249,36 +328,46 @@ body {
 
 .video-author {
     font-size: 14px;
-    color: #fff;
-    opacity: 0.9;
-    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    opacity: 0.95;
+    margin-bottom: 6px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 .video-author::before {
     content: '@';
-    font-weight: bold;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-right: 1px;
 }
 
 .video-tags {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    margin-top: 5px;
+    font-weight: 500;
+    color: var(--accent-primary);
+    margin-top: 4px;
+    text-shadow: 0 0 8px var(--glow-purple);
 }
 
 /* ==========================================
- *  7. LOADING & ERROR STATES
+ *  7. LOADING & ERROR STATES — Premium Gradients
  * ========================================== */
 .loading-spinner {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #fff;
+    width: 44px;
+    height: 44px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--accent-primary);
+    border-right-color: var(--accent-secondary);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
     z-index: 15;
 }
 
@@ -287,28 +376,53 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(220, 38, 38, 0.9);
-    padding: 20px 30px;
-    border-radius: 10px;
+    background: rgba(15, 15, 25, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 28px 36px;
+    border-radius: 16px;
     text-align: center;
     z-index: 1000;
     display: none;
     max-width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(239, 68, 68, 0.15);
 }
 
 .error-message.show {
     display: block;
+    animation: fadeInScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.error-message p {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text-secondary);
 }
 
 .refresh-btn {
-    margin-top: 15px;
-    padding: 10px 25px;
-    background: #fff;
-    color: #dc2626;
+    margin-top: 18px;
+    padding: 10px 28px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: #fff;
     border: none;
     border-radius: 25px;
-    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
     cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px var(--glow-purple);
+}
+
+.refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--glow-purple);
+}
+
+.refresh-btn:active {
+    transform: translateY(0) scale(0.97);
 }
 
 .loading-more {
@@ -329,12 +443,16 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.6);
-    padding: 8px 16px;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    padding: 8px 18px;
     border-radius: 20px;
     font-size: 12px;
+    font-weight: 500;
     z-index: 90;
-    opacity: 0.8;
+    opacity: 0.85;
     pointer-events: none;
 }
 
@@ -344,5 +462,56 @@ body {
 @keyframes spin {
     to {
         transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Smooth scrollbar for non-webkit browsers */
+.video-container {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* Mobile touch optimization */
+@media (hover: none) {
+    .fullscreen-btn {
+        opacity: 0.7;
+    }
+
+    .nav-tab:hover {
+        background: transparent;
+        transform: none;
+    }
+
+    .nav-tab.active:hover {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    }
+}
+
+/* Small screen adjustments */
+@media (max-width: 380px) {
+    .nav-tab {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+
+    .sidebar-btn .icon {
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
+    }
+
+    .video-title {
+        font-size: 14px;
     }
 }

@@ -245,7 +245,7 @@ function hideError() {
 
 function showToast(message) {
     const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);padding:12px 24px;border-radius:25px;z-index:1000;font-size:14px;';
+    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(10,10,20,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);padding:12px 24px;border-radius:25px;z-index:1000;font-size:13px;font-weight:600;font-family:Inter,sans-serif;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,0.4);';
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2000);
@@ -365,7 +365,7 @@ function setupVideoEvents(item, video, spinner, playOverlay, progressBar, fullsc
         spinner.style.display = 'none';
         video.style.display = 'none';
         const errorIcon = document.createElement('div');
-        errorIcon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;opacity:0.7;';
+        errorIcon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;opacity:0.5;filter:grayscale(0.5);';
         errorIcon.textContent = '⚠️';
         wrapper.appendChild(errorIcon);
     });
