@@ -1,356 +1,348 @@
-/* Reset Dasar & Tipografi Minimalis */
+/* =============================================
+ *  VIDEO FEED - Clean Architecture Stylesheet
+ * =============================================
+ *  Sections:
+ *  1. Reset & Base
+ *  2. Top Navigation
+ *  3. Video Container & Items
+ *  4. Video Player Controls
+ *  5. Sidebar (Like, Comment, Share)
+ *  6. Video Info Overlay
+ *  7. Loading & Error States
+ *  8. Utilities & Animations
+ * ============================================= */
+
+/* ==========================================
+ *  1. RESET & BASE
+ * ========================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
 body {
-    background-color: #f4f6f8;
-    color: #333;
-    line-height: 1.7;
-    overflow-x: hidden;
-}
-
-/* Tampilan Artikel Premium */
-.content {
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 40px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-}
-
-.content h1 {
-    font-size: 2.5rem;
-    line-height: 1.2;
-    margin-bottom: 12px;
-    color: #111827;
-    letter-spacing: -0.02em;
-}
-
-.content h2 {
-    font-size: 1.75rem;
-    margin: 35px 0 15px;
-    color: #1f2937;
-    letter-spacing: -0.01em;
-}
-
-.content .meta {
-    color: #6b7280;
-    font-size: 0.95rem;
-    margin-bottom: 30px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 15px;
-}
-
-.content p {
-    margin-bottom: 20px;
-    font-size: 1.125rem;
-    color: #4b5563;
-}
-
-.content blockquote {
-    border-left: 4px solid #3b82f6;
-    padding-left: 20px;
-    margin: 30px 0;
-    font-style: italic;
-    color: #111827;
-    font-weight: 500;
-    background: #eff6ff;
-    padding: 20px;
-    border-radius: 0 8px 8px 0;
-}
-
-/* Pengunci scroll ketika modal aktif */
-body.no-scroll {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #000;
+    color: #fff;
     overflow: hidden;
+    height: 100vh;
+    width: 100vw;
 }
 
-/* Modal Layer (Overlay) */
-.modal-layer {
+/* ==========================================
+ *  2. TOP NAVIGATION (Kategori Tab)
+ * ========================================== */
+.top-nav {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(17, 24, 39, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    right: 0;
+    padding: 15px 20px;
+    background: linear-gradient(rgba(0, 0, 0, 0.8), transparent);
+    z-index: 100;
     display: flex;
     justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 20px;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    gap: 15px;
 }
 
-/* Menyembunyikan modal dengan animasi fade out */
-.modal-layer.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-/* Kartu Konten Utama */
-.card-featured {
-    background: #ffffff;
-    width: 100%;
-    max-width: 480px;
+.nav-tab {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 16px;
     border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    padding: 24px;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.nav-tab.active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================
+ *  3. VIDEO CONTAINER & ITEMS
+ * ========================================== */
+.video-container {
+    height: 100vh;
+    width: 100%;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+.video-container::-webkit-scrollbar {
+    display: none;
+}
+
+.video-item {
+    height: 100vh;
+    width: 100%;
+    scroll-snap-align: start;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+/* ==========================================
+ *  4. VIDEO PLAYER CONTROLS
+ * ========================================== */
+
+/* Play/Pause Overlay */
+.play-pause-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 20;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.play-pause-overlay.show {
+    opacity: 1;
+}
+
+/* Progress Bar */
+.progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    z-index: 15;
+    width: 100%;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #fff;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.video-wrapper:hover .fullscreen-btn {
+    opacity: 1;
+}
+
+/* ==========================================
+ *  5. SIDEBAR (Like, Comment, Share)
+ * ========================================== */
+.sidebar {
+    position: absolute;
+    right: 10px;
+    bottom: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transform: translateY(0) scale(1);
-    opacity: 1;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
-}
-
-/* Animasi tutup */
-.modal-layer.hidden .card-featured {
-    transform: translateY(30px) scale(0.95);
-    opacity: 0;
-}
-
-/* Tombol Tutup */
-.dismiss-btn {
-    position: absolute;
-    top: -16px;
-    right: -16px;
-    background: #ffffff;
-    color: #4b5563;
-    border: 1px solid #e5e7eb;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+    gap: 20px;
     z-index: 10;
 }
 
-.dismiss-btn:hover {
-    transform: scale(1.1);
-    color: #ef4444;
-    border-color: #fee2e2;
-    background: #fee2e2;
-}
-
-.dismiss-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
-}
-
-/* Teks Header di atas Slider */
-.card-heading {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 14px;
-}
-
-.heading-primary {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 4px;
-    line-height: 1.3;
-}
-
-.heading-secondary {
-    font-size: 0.95rem;
-    font-weight: 400;
-    color: #6b7280;
-    line-height: 1.4;
-}
-
-/* Wadah Galeri Gambar */
-.gallery-viewport {
-    width: 100%;
-    overflow: hidden;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    aspect-ratio: 16/10;
-    position: relative;
-    background: #f3f4f6;
-}
-
-/* Track untuk slide */
-.gallery-track {
+.sidebar-btn {
     display: flex;
-    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-    height: 100%;
-    width: 100%;
-    will-change: transform;
-}
-
-.gallery-item {
-    min-width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-/* Area Indikator */
-.indicators {
-    display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #d1d5db;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.indicator.active {
-    background: #3b82f6;
-    transform: scale(1.3);
-    width: 24px;
-    border-radius: 10px;
-}
-
-.indicator:hover:not(.active) {
-    background: #9ca3af;
-}
-
-/* Grup Tombol Aksi */
-.action-row {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-}
-
-/* Tombol Dasar (Shared) */
-.btn-primary,
-.btn-secondary {
-    flex: 1;
-    color: #ffffff;
+    background: transparent;
     border: none;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 0.95rem;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.sidebar-btn:active {
+    transform: scale(0.9);
+}
+
+.sidebar-btn .icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    transition: all 0.3s;
+}
+
+.sidebar-btn .count {
+    font-size: 12px;
+    margin-top: 5px;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.like-active .icon {
+    background: rgba(255, 0, 0, 0.3);
+    color: red;
+}
+
+/* ==========================================
+ *  6. VIDEO INFO OVERLAY
+ * ========================================== */
+.video-info {
+    position: absolute;
+    bottom: 100px;
+    left: 15px;
+    right: 80px;
+    z-index: 10;
+    max-height: 40vh;
+    overflow: hidden;
+}
+
+.video-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-author {
+    font-size: 14px;
+    color: #fff;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.video-author::before {
+    content: '@';
+    font-weight: bold;
+}
+
+.video-tags {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 5px;
+}
+
+/* ==========================================
+ *  7. LOADING & ERROR STATES
+ * ========================================== */
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 15;
+}
+
+.error-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(220, 38, 38, 0.9);
+    padding: 20px 30px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1000;
+    display: none;
+    max-width: 90%;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.refresh-btn {
+    margin-top: 15px;
+    padding: 10px 25px;
+    background: #fff;
+    color: #dc2626;
+    border: none;
+    border-radius: 25px;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: 0.5px;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Tombol Download (Biru) */
-.btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
+.loading-more {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    display: none;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 20px -4px rgba(37, 99, 235, 0.5);
-    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-}
-
-.btn-primary:active {
-    transform: translateY(1px);
-    box-shadow: 0 4px 8px -4px rgba(37, 99, 235, 0.5);
-}
-
-/* Tombol Watch Now (Hijau) */
-.btn-secondary {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    box-shadow: 0 8px 16px -4px rgba(5, 150, 105, 0.4);
-}
-
-.btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 20px -4px rgba(5, 150, 105, 0.5);
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-
-.btn-secondary:active {
-    transform: translateY(1px);
-    box-shadow: 0 4px 8px -4px rgba(5, 150, 105, 0.5);
-}
-
-/* Tombol "Buka 4 Situs" */
-.open-multi {
+.loading-more.show {
     display: block;
-    max-width: 320px;
-    margin: 20px auto;
-    padding: 14px 24px;
-    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%);
-    color: #ffffff;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1rem;
-    text-align: center;
-    letter-spacing: 0.3px;
-    box-shadow: 0 8px 20px -4px rgba(225, 29, 72, 0.45);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        background 0.3s ease;
 }
 
-.open-multi:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px -4px rgba(225, 29, 72, 0.55);
-    background: linear-gradient(135deg, #e11d48 0%, #be123c 50%, #9f1239 100%);
+.swipe-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 90;
+    opacity: 0.8;
+    pointer-events: none;
 }
 
-.open-multi:active {
-    transform: translateY(1px);
-    box-shadow: 0 4px 10px -4px rgba(225, 29, 72, 0.5);
-}
-
-/* Responsivitas (Layar Kecil) */
-@media (max-width: 640px) {
-    .content {
-        margin: 0;
-        border-radius: 0;
-        padding: 25px 20px;
-        min-height: 100vh;
-    }
-
-    .content h1 {
-        font-size: 2rem;
-    }
-
-    .card-featured {
-        padding: 20px;
-        border-radius: 16px;
-    }
-
-    .dismiss-btn {
-        top: -12px;
-        right: -12px;
-    }
-
-    .action-row {
-        flex-direction: column;
-    }
-
-    .open-multi {
-        max-width: 100%;
-        margin: 16px 20px;
+/* ==========================================
+ *  8. UTILITIES & ANIMATIONS
+ * ========================================== */
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
     }
 }

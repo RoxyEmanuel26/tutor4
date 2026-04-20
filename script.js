@@ -1,367 +1,701 @@
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * =============================================
+ *  VIDEO FEED APP — Main Application Script
+ * =============================================
+ *  Clean Architecture — Organized Sections:
+ *
+ *  1. CONFIGURATION       — API URLs, CORS proxies, constants
+ *  2. STATE MANAGEMENT    — Global app state variables
+ *  3. UTILITY FUNCTIONS   — Helpers (formatting, escaping, etc.)
+ *  4. AUTHENTICATION      — RedGifs API token management
+ *  5. API LAYER           — Data fetching (videos)
+ *  6. UI COMPONENTS       — Toast, error display, etc.
+ *  7. VIDEO ELEMENT       — Video DOM creation & event wiring
+ *  8. OBSERVER            — IntersectionObserver for autoplay
+ *  9. SCROLL & GESTURES   — Infinite scroll, touch, keyboard
+ * 10. NAVIGATION          — Tab switching
+ * 11. INITIALIZATION      — App bootstrap
+ * 12. CLEANUP             — Memory leak prevention
+ * ============================================= */
 
-    // ==========================================
-    //  INJEKSI HTML KOTAK KONTEN UTAMA (MODAL)
-    // ==========================================
-    const modalHTML = `
-    <!-- Kotak Konten Utama -->
-    <div class="modal-layer" id="content-modal" aria-hidden="false">
-        <div class="card-featured">
-            <!-- Tombol Tutup -->
-            <button class="dismiss-btn" id="dismiss-modal" aria-label="Tutup">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </button>
+// ==========================================
+//  1. CONFIGURATION
+// ==========================================
 
-            <!-- Teks di atas Gambar -->
-            <div class="card-heading">
-                <p class="heading-primary" id="heading-primary"> 🔞18+ ONLY! Anda bisa download dan menonton video ini
-                    😈</p>
-                <p class="heading-secondary" id="heading-secondary">Mainkan iklannya untuk lanjut samapi download atau
-                    menonton video ini💦</p>
-            </div>
+const CONFIG = {
+    API_BASE: 'https://api.redgifs.com/v2',
+    VIDEOS_PER_PAGE: 10,
+    SCROLL_THRESHOLD: 300,     // px from bottom to trigger load more
+    THROTTLE_MS: 200,          // scroll event throttle
+    TOKEN_REFRESH_BUFFER: 300000, // 5 minutes before expiry
+    TOKEN_LIFETIME: 3600000,   // 1 hour assumed lifetime
+};
 
-            <!-- Slider Gambar (7 gambar) -->
-            <div class="gallery-viewport">
-                <div class="gallery-track" id="gallery-track">
-                    <img src="https://images2.imgbox.com/90/52/POoNcDGx_o.jpg" alt="Preview Gambar 1"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/53/52/hkAnnLjV_o.jpg" alt="Preview Gambar 2"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/d4/dc/tcPf7ZWd_o.jpg" alt="Preview Gambar 3"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/9e/24/QuRAqrbd_o.jpg" alt="Preview Gambar 4"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/5a/95/PgOjufqT_o.jpg" alt="Preview Gambar 5"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/dd/0e/K3eJ2mTY_o.jpg" alt="Preview Gambar 6"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/3d/4b/NcUcFcIG_o.jpg" alt="Preview Gambar 7"
-                        class="gallery-item">
-                    <img src="https://images2.imgbox.com/d5/15/cUizM1ct_o.jpg" alt="Preview Gambar 8"
-                        class="gallery-item">
-                </div>
-            </div>
+const CORS_PROXIES = [
+    '',                                    // Direct access (try first)
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+];
 
-            <!-- Pagination Dots (7 dots) -->
-            <div class="indicators">
-                <span class="indicator active" data-index="0" aria-label="Slide 1"></span>
-                <span class="indicator" data-index="1" aria-label="Slide 2"></span>
-                <span class="indicator" data-index="2" aria-label="Slide 3"></span>
-                <span class="indicator" data-index="3" aria-label="Slide 4"></span>
-                <span class="indicator" data-index="4" aria-label="Slide 5"></span>
-                <span class="indicator" data-index="5" aria-label="Slide 6"></span>
-                <span class="indicator" data-index="6" aria-label="Slide 7"></span>
-                <span class="indicator" data-index="7" aria-label="Slide 8"></span>
-            </div>
+// ==========================================
+//  2. STATE MANAGEMENT
+// ==========================================
 
-            <!-- Tombol Download & Watch Now -->
-            <div class="action-row">
-                <button class="btn-primary" id="btn-download">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    DOWNLOAD
-                </button>
-                <button class="btn-secondary" id="btn-watch">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                    WATCH NOW
-                </button>
-            </div>
-        </div>
-    </div>`;
+const state = {
+    authToken: null,
+    authExpiry: null,
+    currentVideos: [],
+    currentIndex: 0,
+    currentTag: 'trending',
+    currentPage: 1,
+    isLoading: false,
+    hasMore: true,
+    currentProxyIndex: 0,
 
-    // Masukkan HTML ke dalam body halaman
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    // Touch/gesture tracking
+    touchStartY: 0,
+    touchEndY: 0,
+};
 
-    // ==========================================
-    //  KONFIGURASI URL TARGET
-    //  Ganti URL di bawah sesuai kebutuhan
-    // ==========================================
-    const TAB_URLS = {
-        firstClick: 'https://glamournakedemployee.com/c5xf7679?key=80dc863578016519ca9167abc7090944',      // Tab dibuka saat klik pertama di halaman
-        gallerySwipe: 'https://kumpulan5.vercel.app/',      // Tab dibuka saat swipe/klik gallery pertama kali
-        download: 'https://omg10.com/4/10806729',   // Tab dibuka saat klik DOWNLOAD
-        watch: 'https://omg10.com/4/10806728',        // Tab dibuka saat klik WATCH NOW
-        dismiss: 'https://kumpulan1.vercel.app/',      // Tab dibuka saat klik tombol tutup modal
+// ==========================================
+//  3. UTILITY FUNCTIONS
+// ==========================================
+
+function log(...args) {
+    console.log('[VideoFeed]', ...args);
+}
+
+function logError(...args) {
+    console.error('[VideoFeed ERROR]', ...args);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
+function parseCount(str) {
+    if (str.includes('M')) return parseFloat(str) * 1000000;
+    if (str.includes('K')) return parseFloat(str) * 1000;
+    return parseInt(str) || 0;
+}
+
+function throttle(func, limit) {
+    let inThrottle;
+    return function (...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
     };
+}
 
-    // URL tujuan setelah redirect (halaman saat ini pindah ke sini)
-    const REDIRECT_URLS = {
-        download: 'https://omg10.com/4/10806729',    // Redirect setelah klik DOWNLOAD
-        watch: 'https://omg10.com/4/10806728',  // Redirect setelah klik WATCH NOW
-    };
+// ==========================================
+//  4. AUTHENTICATION
+// ==========================================
 
-    // ==========================================
-    //  FLAG TRACKING — tiap trigger hanya 1x
-    // ==========================================
-    let hasClickedPage = false;
-    let hasSwipedGallery = false;
-    let hasDismissed = false;
+async function getAuthToken(forceRefresh = false) {
+    const now = Date.now();
 
-    // Helper: buka 1 tab baru (aman dari popup blocker karena 1 per gesture)
-    function openTab(url) {
-        if (!url) return;
-        window.open(url, '_blank');
+    // Return cached token if still valid
+    if (state.authToken && !forceRefresh && state.authExpiry && (now < state.authExpiry - CONFIG.TOKEN_REFRESH_BUFFER)) {
+        log('Using cached auth token');
+        return state.authToken;
     }
 
-    // ==========================================
-    //  1. FIRST CLICK — klik pertama di mana saja
-    // ==========================================
-    document.addEventListener('click', function firstClickHandler(e) {
-        // Jangan trigger kalau yang diklik adalah tombol Download/Watch/Dismiss
-        const btnDownload = document.getElementById('btn-download');
-        const btnWatch = document.getElementById('btn-watch');
-        const btnDismiss = document.getElementById('dismiss-modal');
+    try {
+        log('Fetching new auth token...');
+        let response = null;
 
-        if (e.target === btnDownload || btnDownload.contains(e.target) ||
-            e.target === btnWatch || btnWatch.contains(e.target) ||
-            e.target === btnDismiss || btnDismiss.contains(e.target)) {
-            return; // Biarkan handler spesifik yang tangani
-        }
+        for (let i = state.currentProxyIndex; i < CORS_PROXIES.length; i++) {
+            const proxy = CORS_PROXIES[i];
+            const url = proxy
+                ? `${proxy}${encodeURIComponent(`${CONFIG.API_BASE}/auth/temporary`)}`
+                : `${CONFIG.API_BASE}/auth/temporary`;
 
-        if (!hasClickedPage) {
-            hasClickedPage = true;
-            openTab(TAB_URLS.firstClick);
-        }
-    }, true); // Use capture phase
+            log(`Trying auth with proxy: ${proxy || 'direct'}`);
 
-    // ==========================================
-    //  REFERENSI ELEMEN DOM
-    // ==========================================
-    const galleryTrack = document.getElementById('gallery-track');
-    const indicators = document.querySelectorAll('.indicator');
-    const dismissBtn = document.getElementById('dismiss-modal');
-    const modalLayer = document.getElementById('content-modal');
-    const btnDownload = document.getElementById('btn-download');
-    const btnWatch = document.getElementById('btn-watch');
-
-    let currentIndex = 0;
-    const totalSlides = indicators.length;
-
-    // Fitur Gestur Swipe (Touch)
-    let startX = 0;
-    let endX = 0;
-    let isSwiping = false;
-
-    // ==========================================
-    //  AUTO-SLIDE (setiap 4 detik)
-    // ==========================================
-    const AUTO_SLIDE_INTERVAL = 4000;
-    let autoSlideTimer = null;
-
-    function startAutoSlide() {
-        stopAutoSlide();
-        autoSlideTimer = setInterval(() => {
-            goToSlide(currentIndex + 1);
-        }, AUTO_SLIDE_INTERVAL);
-    }
-
-    function stopAutoSlide() {
-        if (autoSlideTimer) {
-            clearInterval(autoSlideTimer);
-            autoSlideTimer = null;
-        }
-    }
-
-    function resetAutoSlide() {
-        stopAutoSlide();
-        startAutoSlide();
-    }
-
-    // Kunci scroll saat modal aktif
-    document.body.classList.add('no-scroll');
-
-    // Fungsi utama untuk berpindah slide
-    function goToSlide(index) {
-        if (index < 0) {
-            index = totalSlides - 1;
-        } else if (index >= totalSlides) {
-            index = 0;
-        }
-
-        galleryTrack.style.transform = `translateX(-${index * 100}%)`;
-
-        indicators.forEach(ind => ind.classList.remove('active'));
-        indicators[index].classList.add('active');
-
-        currentIndex = index;
-    }
-
-    // ==========================================
-    //  2. GALLERY INTERACTION — buka tab saat swipe/klik slide pertama kali
-    // ==========================================
-    function onGalleryInteraction() {
-        if (!hasSwipedGallery) {
-            hasSwipedGallery = true;
-            openTab(TAB_URLS.gallerySwipe);
-        }
-    }
-
-    // Event Listener untuk setiap Indicator
-    indicators.forEach((ind) => {
-        ind.addEventListener('click', (e) => {
-            const index = parseInt(e.target.getAttribute('data-index'), 10);
-            goToSlide(index);
-            resetAutoSlide();
-            onGalleryInteraction(); // Buka tab kalau pertama kali
-        });
-    });
-
-    // ==========================================
-    //  3. DOWNLOAD BUTTON — buka 1 tab + redirect halaman
-    // ==========================================
-    btnDownload.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openTab(TAB_URLS.download);
-        // Sedikit delay agar tab sempat terbuka sebelum redirect
-        setTimeout(() => {
-            window.location.href = REDIRECT_URLS.download;
-        }, 300);
-    });
-
-    // ==========================================
-    //  4. WATCH BUTTON — buka 1 tab + redirect halaman
-    // ==========================================
-    btnWatch.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openTab(TAB_URLS.watch);
-        setTimeout(() => {
-            window.location.href = REDIRECT_URLS.watch;
-        }, 300);
-    });
-
-    // ==========================================
-    //  5. DISMISS (TUTUP) — buka 1 tab sebelum close
-    // ==========================================
-    function closeModal() {
-        if (!hasDismissed) {
-            hasDismissed = true;
-            openTab(TAB_URLS.dismiss);
-        }
-        modalLayer.classList.add('hidden');
-        modalLayer.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('no-scroll');
-        stopAutoSlide();
-    }
-
-    dismissBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Jangan trigger first-click handler
-        closeModal();
-    });
-
-    // Tutup modal ketika klik di luar kartu
-    modalLayer.addEventListener('click', (e) => {
-        if (e.target === modalLayer) {
-            closeModal();
-        }
-    });
-
-    // ==========================================
-    //  SWIPE / TOUCH GESTURES
-    // ==========================================
-    if (window.PointerEvent) {
-        galleryTrack.addEventListener('pointerdown', (e) => {
-            startX = e.clientX;
-            isSwiping = true;
-            galleryTrack.setPointerCapture(e.pointerId);
-            stopAutoSlide();
-        });
-
-        galleryTrack.addEventListener('pointermove', (e) => {
-            if (!isSwiping) return;
-            endX = e.clientX;
-        });
-
-        galleryTrack.addEventListener('pointerup', (e) => {
-            if (!isSwiping) return;
-            galleryTrack.releasePointerCapture(e.pointerId);
-            handleSwipeEnd();
-        });
-    } else {
-        galleryTrack.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isSwiping = true;
-            stopAutoSlide();
-        }, { passive: true });
-
-        galleryTrack.addEventListener('touchmove', (e) => {
-            if (!isSwiping) return;
-            endX = e.touches[0].clientX;
-        }, { passive: true });
-
-        galleryTrack.addEventListener('touchend', () => {
-            if (!isSwiping) return;
-            handleSwipeEnd();
-        });
-    }
-
-    function handleSwipeEnd() {
-        const diffX = startX - endX;
-
-        if (Math.abs(diffX) > 30 && endX !== 0) {
-            if (diffX > 0) {
-                goToSlide(currentIndex + 1);
-            } else {
-                goToSlide(currentIndex - 1);
+            try {
+                response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                });
+                if (response.ok) break;
+            } catch (e) {
+                logError(`Proxy ${proxy} failed:`, e);
+                continue;
             }
-            onGalleryInteraction(); // Buka tab kalau pertama kali swipe
         }
 
-        endX = 0;
-        isSwiping = false;
-        resetAutoSlide();
-    }
+        if (!response || !response.ok) {
+            logError('Auth response not OK:', response ? response.status : 'no response');
+            throw new Error('Failed to get auth token');
+        }
 
-    // Cegah image dragging bawaan browser agar swipe lancar
-    const images = galleryTrack.querySelectorAll('img');
-    images.forEach(img => {
-        img.addEventListener('dragstart', (e) => e.preventDefault());
+        const data = await response.json();
+        if (!data.token) {
+            logError('No token in response');
+            throw new Error('No token received');
+        }
+
+        state.authToken = data.token;
+        state.authExpiry = now + CONFIG.TOKEN_LIFETIME;
+        log('Auth token received, expires in 1 hour');
+        return state.authToken;
+
+    } catch (error) {
+        logError('Auth error:', error);
+        showError('Authentication failed. Please refresh.');
+        return null;
+    }
+}
+
+// ==========================================
+//  5. API LAYER
+// ==========================================
+
+async function fetchVideos(tag = 'trending', page = 1) {
+    try {
+        log(`Fetching videos for tag: ${tag}, page: ${page}`);
+        const token = await getAuthToken();
+        if (!token) {
+            logError('No auth token available');
+            return [];
+        }
+
+        const baseUrl = tag === 'trending'
+            ? `${CONFIG.API_BASE}/gifs/trending?count=${CONFIG.VIDEOS_PER_PAGE}&page=${page}`
+            : `${CONFIG.API_BASE}/gifs/search?tags=${tag}&count=${CONFIG.VIDEOS_PER_PAGE}&page=${page}`;
+
+        let response = null;
+
+        for (let i = state.currentProxyIndex; i < CORS_PROXIES.length; i++) {
+            const proxy = CORS_PROXIES[i];
+            const url = proxy ? `${proxy}${encodeURIComponent(baseUrl)}` : baseUrl;
+            log(`Trying videos with proxy: ${proxy || 'direct'}`);
+
+            try {
+                response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                });
+                if (response.ok) break;
+            } catch (e) {
+                logError(`Proxy ${proxy} failed:`, e);
+                continue;
+            }
+        }
+
+        if (!response || !response.ok) {
+            logError('Video response not OK:', response ? response.status : 'no response');
+
+            // Auto-refresh token on 401
+            if (response && response.status === 401) {
+                logError('401 Unauthorized, refreshing token...');
+                state.authToken = null;
+                await getAuthToken(true);
+                return fetchVideos(tag, page);
+            }
+
+            throw new Error(`HTTP ${response ? response.status : 'unknown'}`);
+        }
+
+        const data = await response.json();
+        log('Received gifs:', data.gifs ? data.gifs.length : 0);
+        state.hasMore = data.gifs && data.gifs.length === CONFIG.VIDEOS_PER_PAGE;
+        return data.gifs || [];
+
+    } catch (error) {
+        logError('Fetch error:', error);
+
+        if (error.message.includes('401')) {
+            state.authToken = null;
+            await getAuthToken(true);
+            return fetchVideos(tag, page);
+        }
+
+        showError('Failed to load videos. Please try again.');
+        return [];
+    }
+}
+
+// ==========================================
+//  6. UI COMPONENTS
+// ==========================================
+
+function showError(message) {
+    document.getElementById('errorText').textContent = message;
+    document.getElementById('errorMessage').classList.add('show');
+}
+
+function hideError() {
+    document.getElementById('errorMessage').classList.remove('show');
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);padding:12px 24px;border-radius:25px;z-index:1000;font-size:14px;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+}
+
+// ==========================================
+//  7. VIDEO ELEMENT BUILDER
+// ==========================================
+
+function createVideoElement(videoData, globalIndex) {
+    const item = document.createElement('div');
+    item.className = 'video-item';
+    item.dataset.index = globalIndex;
+    item.id = `video-${globalIndex}`;
+
+    const urls = videoData.urls;
+    const videoUrl = urls.hd || urls.sd || urls.gif;
+    const title = videoData.title || 'Untitled Video';
+    const author = videoData.author || videoData.userName || 'unknown';
+    const likes = videoData.likes || Math.floor(Math.random() * 50000);
+    const comments = videoData.comments || Math.floor(Math.random() * 1000);
+
+    // Build DOM via DocumentFragment for performance
+    const fragment = document.createDocumentFragment();
+
+    // --- Video Wrapper ---
+    const wrapper = document.createElement('div');
+    wrapper.className = 'video-wrapper';
+
+    const video = document.createElement('video');
+    video.src = videoUrl;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.poster = videoData.poster || '';
+    video.muted = true;
+
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+
+    const playOverlay = document.createElement('div');
+    playOverlay.className = 'play-pause-overlay';
+    playOverlay.textContent = '▶';
+
+    const fullscreenBtn = document.createElement('button');
+    fullscreenBtn.className = 'fullscreen-btn';
+    fullscreenBtn.textContent = '⛶';
+    fullscreenBtn.type = 'button';
+    fullscreenBtn.setAttribute('aria-label', 'Toggle fullscreen');
+
+    const progressBarContainer = document.createElement('div');
+    progressBarContainer.className = 'progress-bar';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'progress-fill';
+    progressBarContainer.appendChild(progressBar);
+
+    wrapper.appendChild(video);
+    wrapper.appendChild(spinner);
+    wrapper.appendChild(playOverlay);
+    wrapper.appendChild(fullscreenBtn);
+    wrapper.appendChild(progressBarContainer);
+    fragment.appendChild(wrapper);
+
+    // --- Video Info ---
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'video-info';
+    infoDiv.innerHTML = `
+        <div class="video-title">${escapeHtml(title)}</div>
+        <div class="video-author">${escapeHtml(author)}</div>
+        <div class="video-tags">#${videoData.tags ? escapeHtml(videoData.tags[0] || 'video') : 'viral'}</div>
+    `;
+    fragment.appendChild(infoDiv);
+
+    // --- Sidebar Buttons ---
+    const sidebar = document.createElement('div');
+    sidebar.className = 'sidebar';
+    sidebar.innerHTML = `
+        <button class="sidebar-btn like-btn" type="button" aria-label="Like"><div class="icon">♥</div><span class="count">${formatNumber(likes)}</span></button>
+        <button class="sidebar-btn" type="button" aria-label="Comment"><div class="icon">💬</div><span class="count">${formatNumber(comments)}</span></button>
+        <button class="sidebar-btn share-btn" type="button" aria-label="Share"><div class="icon">↗</div><span class="count">Share</span></button>
+    `;
+    fragment.appendChild(sidebar);
+
+    item.appendChild(fragment);
+
+    // --- Event Listeners ---
+    setupVideoEvents(item, video, spinner, playOverlay, progressBar, fullscreenBtn, videoData);
+
+    // Register with IntersectionObserver
+    getVideoObserver().observe(item);
+
+    return item;
+}
+
+/**
+ * Pasang semua event listener untuk satu video item.
+ */
+function setupVideoEvents(item, video, spinner, playOverlay, progressBar, fullscreenBtn, videoData) {
+    const wrapper = video.closest('.video-wrapper');
+
+    // Loading states
+    video.addEventListener('loadeddata', () => { spinner.style.display = 'none'; }, { once: true });
+    video.addEventListener('waiting', () => { spinner.style.display = 'block'; });
+    video.addEventListener('playing', () => { spinner.style.display = 'none'; playOverlay.classList.remove('show'); });
+
+    // Progress bar update
+    video.addEventListener('timeupdate', () => {
+        if (video.duration && isFinite(video.duration)) {
+            progressBar.style.width = (video.currentTime / video.duration) * 100 + '%';
+        }
+    });
+    video.addEventListener('ended', () => { progressBar.style.width = '0%'; });
+
+    // Error handling
+    video.addEventListener('error', (e) => {
+        console.error('Video load error:', e);
+        spinner.style.display = 'none';
+        video.style.display = 'none';
+        const errorIcon = document.createElement('div');
+        errorIcon.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;opacity:0.7;';
+        errorIcon.textContent = '⚠️';
+        wrapper.appendChild(errorIcon);
     });
 
-    // Mulai auto-slide saat halaman dimuat
-    startAutoSlide();
+    // Click to play/pause
+    wrapper.addEventListener('click', (e) => {
+        if (e.target.classList.contains('sidebar-btn') ||
+            e.target.classList.contains('fullscreen-btn') ||
+            e.target.closest('.sidebar-btn')) return;
+        togglePlay(video, playOverlay);
+    });
 
-    // ==========================================
-    //  RANDOM LINK UNTUK TOMBOL VERIFYING
-    // ==========================================
-    const btnOpenMulti = document.getElementById('btn-open-multi');
-    if (btnOpenMulti) {
-        // Masukkan 10 link Anda di bawah ini
-        const randomLinks = [
-            'https://glamournakedemployee.com/dktyyvhhvs?key=2135b8086ad561259d59a35e74d4dae3',
-            'https://glamournakedemployee.com/bxj9v8xs?key=bbcc03541721fe595f6d0a199086c628',
-            'https://glamournakedemployee.com/d1ydygn4?key=ae04db9758f66d571a2d122b08635af3',
-            'https://glamournakedemployee.com/c5xf7679?key=80dc863578016519ca9167abc7090944',
-            'https://glamournakedemployee.com/npkvzf46m?key=8060ea72a291acdeae897405426a6013',
-            'https://glamournakedemployee.com/xdn13p8ti?key=d9dbf00859cec6d1da89b3855b9f40df',
-            'https://glamournakedemployee.com/r0ue7gdeb8?key=0f351b4656e9db04d06bdd25deb60f05',
-            'https://glamournakedemployee.com/vfag6svjx?key=ba78cf78789f91aa7ace1942fce8a322',
-            'https://glamournakedemployee.com/jpnevpwu8?key=53b3ae6972e09ad30eb53ce3f99890a5',
-            'https://glamournakedemployee.com/xdi7pkz9wh?key=46862d356a0f361ac92be23fe00a265a'
-        ];
+    // Double tap fullscreen (mobile)
+    let lastTap = 0;
+    wrapper.addEventListener('touchend', (e) => {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastTap < 300 && currentTime - lastTap > 0) {
+            toggleFullscreen(fullscreenBtn);
+            e.preventDefault();
+        }
+        lastTap = currentTime;
+    }, { passive: false });
 
-        btnOpenMulti.addEventListener('click', function (e) {
-            e.preventDefault(); // Mencegah link pindah ke href default HTML
-            e.stopPropagation(); // Mencegah trigger first-click page handler
-
-            // Pilih link secara acak
-            const randomIndex = Math.floor(Math.random() * randomLinks.length);
-            const selectedLink = randomLinks[randomIndex];
-
-            // Buka link di tab baru atau tab yang sama (pilih salah satu)
-            // window.open(selectedLink, '_blank'); // Buka di tab baru
-            window.location.href = selectedLink; // Buka di tab yang sama
+    // Like button
+    const likeBtn = item.querySelector('.like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function () {
+            this.classList.toggle('like-active');
+            const countSpan = this.querySelector('.count');
+            let count = parseCount(countSpan.textContent);
+            count += this.classList.contains('like-active') ? 1 : -1;
+            countSpan.textContent = formatNumber(count);
         });
     }
+
+    // Share button
+    const shareBtn = item.querySelector('.share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            shareVideo(videoData.id);
+        });
+    }
+}
+
+// ==========================================
+//  8. VIDEO PLAYER CONTROLS
+// ==========================================
+
+function togglePlay(video, overlay) {
+    if (video.paused) {
+        video.play();
+        overlay.textContent = '▶';
+    } else {
+        video.pause();
+        overlay.textContent = '⏸';
+    }
+    overlay.classList.add('show');
+    setTimeout(() => overlay.classList.remove('show'), 500);
+}
+
+function toggleFullscreen(btn) {
+    const videoItem = btn.closest('.video-item');
+    if (!document.fullscreenElement) {
+        videoItem.requestFullscreen().catch(err => console.log('Fullscreen error:', err));
+        btn.textContent = '❐';
+    } else {
+        document.exitFullscreen();
+        btn.textContent = '⛶';
+    }
+}
+
+function shareVideo(id) {
+    const url = `https://redgifs.com/watch/${id}`;
+    if (navigator.share) {
+        navigator.share({ title: 'Check out this video', url }).catch(console.error);
+    } else {
+        navigator.clipboard.writeText(url);
+        showToast('Link copied to clipboard!');
+    }
+}
+
+// ==========================================
+//  9. INTERSECTION OBSERVER (Autoplay)
+// ==========================================
+
+let videoObserver = null;
+
+function getVideoObserver() {
+    if (!videoObserver) {
+        videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const item = entry.target;
+                const video = item.querySelector('video');
+                const progressBar = item.querySelector('.progress-fill');
+
+                if (!video || !progressBar) return;
+
+                if (entry.isIntersecting && entry.intersectionRatio > 0.7) {
+                    video.muted = true;
+                    video.play().catch(e => {
+                        if (e.name !== 'AbortError') console.log('Autoplay prevented');
+                    });
+                    const index = parseInt(item.dataset.index);
+                    if (!isNaN(index)) state.currentIndex = index;
+                } else {
+                    video.pause();
+                    video.currentTime = 0;
+                    progressBar.style.width = '0%';
+                }
+            });
+        }, { threshold: [0.7], rootMargin: '50px' });
+    }
+    return videoObserver;
+}
+
+// ==========================================
+// 10. LOADING & INFINITE SCROLL
+// ==========================================
+
+async function loadVideos(reset = true) {
+    if (state.isLoading) return;
+    state.isLoading = true;
+    hideError();
+
+    const container = document.getElementById('videoContainer');
+
+    if (reset) {
+        // Cleanup existing observers
+        if (videoObserver) {
+            document.querySelectorAll('.video-item').forEach(item => {
+                videoObserver.unobserve(item);
+            });
+        }
+        container.innerHTML = '';
+        state.currentVideos = [];
+        state.currentPage = 1;
+        state.currentIndex = 0;
+    }
+
+    log('Loading videos, reset:', reset, 'page:', state.currentPage);
+    const videos = await fetchVideos(state.currentTag, state.currentPage);
+    log('Videos loaded:', videos.length);
+
+    if (videos.length === 0) {
+        if (reset) {
+            logError('No videos available for tag:', state.currentTag);
+            showError('No videos available. Try another category.');
+        }
+        state.isLoading = false;
+        return;
+    }
+
+    state.currentVideos = [...state.currentVideos, ...videos];
+
+    const fragment = document.createDocumentFragment();
+    videos.forEach((video, index) => {
+        const globalIndex = state.currentVideos.length - videos.length + index;
+        fragment.appendChild(createVideoElement(video, globalIndex));
+    });
+    container.appendChild(fragment);
+
+    state.currentPage++;
+    state.isLoading = false;
+}
+
+async function loadMoreVideos() {
+    if (state.isLoading || !state.hasMore) return;
+
+    state.isLoading = true;
+    document.getElementById('loadingMore').classList.add('show');
+
+    const moreVideos = await fetchVideos(state.currentTag, state.currentPage);
+
+    if (moreVideos.length > 0) {
+        const container = document.getElementById('videoContainer');
+        const fragment = document.createDocumentFragment();
+
+        moreVideos.forEach((video, index) => {
+            const globalIndex = state.currentVideos.length + index;
+            fragment.appendChild(createVideoElement(video, globalIndex));
+        });
+
+        container.appendChild(fragment);
+        state.currentVideos = [...state.currentVideos, ...moreVideos];
+        state.currentPage++;
+    }
+
+    state.isLoading = false;
+    document.getElementById('loadingMore').classList.remove('show');
+}
+
+// ==========================================
+// 11. EVENT HANDLERS (Scroll, Touch, Keyboard)
+// ==========================================
+
+function setupScrollHandler() {
+    const container = document.getElementById('videoContainer');
+
+    const handleScroll = () => {
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        if (scrollTop + clientHeight >= scrollHeight - CONFIG.SCROLL_THRESHOLD) {
+            loadMoreVideos();
+        }
+    };
+
+    container.addEventListener('scroll', throttle(handleScroll, CONFIG.THROTTLE_MS), { passive: true });
+}
+
+function setupTouchHandlers() {
+    const container = document.getElementById('videoContainer');
+
+    container.addEventListener('touchstart', (e) => {
+        state.touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    container.addEventListener('touchmove', (e) => {
+        state.touchEndY = e.touches[0].clientY;
+    }, { passive: true });
+}
+
+function setupKeyboardNavigation() {
+    document.addEventListener('keydown', (e) => {
+        const videos = document.querySelectorAll('.video-item');
+
+        switch (e.key) {
+            case 'ArrowDown':
+            case 'j':
+                e.preventDefault();
+                if (state.currentIndex < videos.length - 1) {
+                    videos[state.currentIndex + 1].scrollIntoView({ behavior: 'smooth' });
+                }
+                break;
+
+            case 'ArrowUp':
+            case 'k':
+                e.preventDefault();
+                if (state.currentIndex > 0) {
+                    videos[state.currentIndex - 1].scrollIntoView({ behavior: 'smooth' });
+                }
+                break;
+
+            case ' ':
+            case 'Enter':
+                e.preventDefault();
+                const currentVideo = videos[state.currentIndex]?.querySelector('video');
+                const overlay = videos[state.currentIndex]?.querySelector('.play-pause-overlay');
+                if (currentVideo) togglePlay(currentVideo, overlay);
+                break;
+
+            case 'f':
+                const btn = videos[state.currentIndex]?.querySelector('.fullscreen-btn');
+                if (btn) toggleFullscreen(btn);
+                break;
+        }
+    });
+}
+
+function setupNavigationTabs() {
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            state.currentTag = tab.dataset.tag;
+            loadVideos(true);
+        });
+    });
+}
+
+// ==========================================
+// 12. INITIALIZATION
+// ==========================================
+
+async function initApp() {
+    log('Initializing Video Feed App...');
+
+    const token = await getAuthToken();
+    if (token) {
+        log('Auth successful, loading videos...');
+        loadVideos(true);
+    } else {
+        logError('Auth failed on init');
+        showError('Failed to authenticate. Please refresh.');
+    }
+
+    // Setup all event handlers
+    setupScrollHandler();
+    setupTouchHandlers();
+    setupKeyboardNavigation();
+    setupNavigationTabs();
+
+    // Retry button
+    document.getElementById('retryBtn')?.addEventListener('click', () => {
+        loadVideos(true);
+    });
+}
+
+// Bootstrap
+document.addEventListener('DOMContentLoaded', initApp);
+
+// ==========================================
+// 13. CLEANUP & LIFECYCLE
+// ==========================================
+
+// Pause all videos when tab is hidden
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        document.querySelectorAll('video').forEach(v => v.pause());
+    }
+});
+
+// Sync fullscreen button text
+document.addEventListener('fullscreenchange', () => {
+    const currentVideoItem = document.querySelector(`#video-${state.currentIndex}`);
+    if (currentVideoItem) {
+        const btn = currentVideoItem.querySelector('.fullscreen-btn');
+        if (btn) {
+            btn.textContent = document.fullscreenElement ? '❐' : '⛶';
+        }
+    }
+});
+
+// Prevent memory leaks on page unload
+window.addEventListener('beforeunload', () => {
+    if (videoObserver) {
+        videoObserver.disconnect();
+        videoObserver = null;
+    }
+    document.querySelectorAll('video').forEach(v => {
+        v.pause();
+        v.src = '';
+        v.load();
+    });
 });
